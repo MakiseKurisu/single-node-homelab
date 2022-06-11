@@ -4,3 +4,7 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Single Node Homelab"
+
+[output.html]
+git-repository-url = "https://github.com/MakiseKurisu/single-node-homelab/tree/main"
+edit-url-template = "https://github.com/MakiseKurisu/single-node-homelab/edit/main/{path}"
