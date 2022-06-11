@@ -1,0 +1,6 @@
+[book]
+authors = ["Makise Kurisu"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Single Node Homelab"

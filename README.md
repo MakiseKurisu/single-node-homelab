@@ -1,0 +1,1 @@
+# Wife-friendly homelab on the cheap
