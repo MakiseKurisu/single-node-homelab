@@ -29,10 +29,11 @@ This is mostly based on network connectivity. X370 PG is the only X370 with 5GbE
 
 This bias for ASRock is also due to them being the first vendor to support Ryzen 5000 series on their X370 motherboard long before AMD eased the restriction, making them the only choice for the cheap used motherboard. Right now a lot of other vendors have added the support on their X370 boards as well, but they do not have better NIC so the calculation is still the same.
 
+One final thing is [IOMMU group](https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF#Ensuring_that_the_groups_are_valid). Motherboard with good IOMMU grouping means you can easily pass devices to the guest. ACS override is a hack and a source of instability so I don't think it is worth doing. For X370PG (and likely Taichi) the 2 X8/16 slots and the M.2 slot are all in separate IOMMU groups so you can use them for GPU passthrough. As for motherboard peripherals, most of them are in the same group except for the USB 3.0 controller and the audio controller. Not the best but I can live with this.
+
 For CPU I'm currently using Ryzen 7 3700X which is the generation where AMD's gaming performance caught up with Intel and before they jacked up the price on 5000 series. 3700X being the cheaper 8-core offering from this generation with a box cooler means you can get them together for cheap. If your budget cannot afford this you can check earlier 8-core offering 1700/2700, as well as 6-core offering 1600AF/3600, based on your requirement of single and multi-threaded performance.
 
 Moving forward there is also an upgrade path of 3900X/3950X and 5900X/5950X. 5900X is the most likely candidate for the improved core count and IPC, while likely being cheaper per core than 5950X in a few years. After 5900X is no longer performant AM5 platform and DDR5 should be mature enough with a good 2nd hand market.
-
 
 ### Memory
 
