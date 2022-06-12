@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.1.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html" class="active"><strong aria-hidden="true">2.2.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">2.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html" class="active"><strong aria-hidden="true">2.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -141,6 +141,69 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="join-samba-active-directory-domain"><a class="header" href="#join-samba-active-directory-domain">Join Samba Active Directory Domain</a></h1>
+<p>In this chapter, we will join our existing AD domain.</p>
+<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
+<pre><code>sudo systemctl stop smbd nmbd winbind
+sudo rm -rf /etc/samba/smb.conf /run/samba /var/lib/samba /var/cache/samba /etc/krb5.conf
+sudo mkdir -p /var/lib/samba/private
+sudo sed -ie &quot;s/^127.0.1.1.*$//&quot; /etc/hosts
+</code></pre>
+<h2 id="check-if-ad-dns-is-working"><a class="header" href="#check-if-ad-dns-is-working">Check if AD DNS is working</a></h2>
+<pre><code>AD_REALM=SAMDOM.EXAMPLE.COM
+DC=DC01
+
+host -t SRV _ldap._tcp.${AD_REALM}
+host -t SRV _kerberos._udp.${AD_REALM}
+host -t A ${DC}.${AD_REALM}.
+host AD.DOMAIN.CONTROLLER.IP
+</code></pre>
+<h2 id="configure-kerberos-and-samba"><a class="header" href="#configure-kerberos-and-samba">Configure Kerberos and Samba</a></h2>
+<pre><code>AD_REALM=SAMDOM.EXAMPLE.COM
+WORKGROUP=SAMDOM
+
+cat &lt;&lt; EOF | sudo tee /etc/krb5.conf
+[libdefaults]
+    default_realm = ${AD_REALM}
+    dns_lookup_realm = false
+    dns_lookup_kdc = true
+EOF
+
+cat &lt;&lt; EOF | sudo tee /etc/samba/smb.conf
+[global]
+    security = ADS
+    workgroup = ${WORKGROUP}
+    realm = ${AD_REALM}
+
+    idmap config * : backend = autorid
+    idmap config * : range = 10000-9999999
+
+    username map = /usr/local/samba/etc/user.map
+
+    template shell = /bin/bash
+    template homedir = /home/%U
+    winbind use default domain = yes
+EOF
+
+sudo mkdir -p /usr/local/samba/etc/
+echo '!root = ${WORKGROUP}\Administrator' | sudo tee /usr/local/samba/etc/user.map
+</code></pre>
+<h2 id="joining-domain"><a class="header" href="#joining-domain">Joining domain</a></h2>
+<pre><code>sudo net ads join -U Administrator
+sudo systemctl start smbd nmbd winbind
+sudo sed -i -e &quot;s/passwd:\s*files/passwd: files winbind/&quot; -e &quot;s/group:\s*files/group: files winbind/&quot; /etc/nsswitch.conf
+echo &quot;session required pam_mkhomedir.so&quot; | sudo tee -a /etc/pam.d/common-session
+</code></pre>
+<h2 id="testing"><a class="header" href="#testing">Testing</a></h2>
+<pre><code>wbinfo --ping-dc
+getent passwd SAMDOM\\Administrator
+getent group &quot;SAMDOM\\Domain Users&quot;
+touch /tmp/samba_test
+sudo chown &quot;SAMDOM\\Administrator:SAMDOM\\Domain Users&quot; /tmp/samba_test
+ls -la /tmp/samba_test
+</code></pre>
+<h2 id="reference"><a class="header" href="#reference">Reference</a></h2>
+<p><a href="https://wiki.samba.org/index.php/Setting_up_Samba_as_a_Domain_Member">Samba Wiki</a>
+<a href="https://wiki.samba.org/index.php/Authenticating_Domain_Users_Using_PAM">Samba Wiki-Winbind</a></p>
 
                     </main>
 

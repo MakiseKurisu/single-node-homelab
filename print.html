@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.1.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">2.2.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">2.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">2.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -176,6 +176,7 @@
 </ol>
 <p>This is mostly based on network connectivity. X370 PG is the only X370 with 5GbE and X470 TU is the only X470 with 10GbE (excluding the ASRock Rack offering which is a lot more expensive). Being the halo products they, unfortunately, have very limited availability (especially X470 TU). In that case, I'll just go with X370 Taichi which is X370 PG minus the 5GbE, and rely on a USB or PCIe network card if I do need the extra port or bandwidth.</p>
 <p>This bias for ASRock is also due to them being the first vendor to support Ryzen 5000 series on their X370 motherboard long before AMD eased the restriction, making them the only choice for the cheap used motherboard. Right now a lot of other vendors have added the support on their X370 boards as well, but they do not have better NIC so the calculation is still the same.</p>
+<p>One final thing is <a href="https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF#Ensuring_that_the_groups_are_valid">IOMMU group</a>. Motherboard with good IOMMU grouping means you can easily pass devices to the guest. ACS override is a hack and a source of instability so I don't think it is worth doing. For X370PG (and likely Taichi) the 2 X8/16 slots and the M.2 slot are all in separate IOMMU groups so you can use them for GPU passthrough. As for motherboard peripherals, most of them are in the same group except for the USB 3.0 controller and the audio controller. Not the best but I can live with this.</p>
 <p>For CPU I'm currently using Ryzen 7 3700X which is the generation where AMD's gaming performance caught up with Intel and before they jacked up the price on 5000 series. 3700X being the cheaper 8-core offering from this generation with a box cooler means you can get them together for cheap. If your budget cannot afford this you can check earlier 8-core offering 1700/2700, as well as 6-core offering 1600AF/3600, based on your requirement of single and multi-threaded performance.</p>
 <p>Moving forward there is also an upgrade path of 3900X/3950X and 5900X/5950X. 5900X is the most likely candidate for the improved core count and IPC, while likely being cheaper per core than 5950X in a few years. After 5900X is no longer performant AM5 platform and DDR5 should be mature enough with a good 2nd hand market.</p>
 <h3 id="memory"><a class="header" href="#memory">Memory</a></h3>
@@ -183,8 +184,149 @@
 <h3 id="gpu"><a class="header" href="#gpu">GPU</a></h3>
 <p>To use <a href="https://github.com/DualCoder/vgpu_unlock">vGPU unlock</a>, you need Maxwell/Pascal/Turing based Nvidia GPU and a good amount of vram to be useful. Some recommended cards are Tesla M40/P40 24GB for dedicated vGPU, or Geforce Titan X (Pascal) / Geforce GTX 1080 Ti for using the combined driver. Those cards have a good amount of vram while fast enough to be comfortably shared by many guests. Since we only have 2-3 PCIe slots for GPU a cheaper one basically &quot;wastes&quot; it, but they can be used nonetheless. With a Titan X you don't have to mess with cooling and can use as a passthrough GPU for now. Once you need a better GPU (that may not be supported by vGPU unlock), you can still share it with guests, maximizing the use-value.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="software"><a class="header" href="#software">Software</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="create-debian-guest"><a class="header" href="#create-debian-guest">Create Debian Guest</a></h1>
+<h2 id="configure"><a class="header" href="#configure">Configure</a></h2>
+<pre><code>apt update &amp;&amp; apt install -y ssh &amp;&amp; systemctl enable ssh &amp;&amp; poweroff
+
+su -
+apt install -y bash-completion tmux sudo
+apt install -y samba winbind libnss-winbind libpam-winbind krb5-user libpam-krb5
+apt install -y systemd-timesyncd
+timedatectl set-ntp true
+systemctl enable --now serial-getty@ttyS0
+nano /etc/network/interfaces
+# Add `iface enp6s18 inet6 dhcp`
+usermod -a -G sudo YOUR_USER
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="set-up-samba-active-directory-domain-controller"><a class="header" href="#set-up-samba-active-directory-domain-controller">Set up Samba Active Directory Domain Controller</a></h1>
+<p>In this chapter, we will set up an AD domain controller with DNS and NTP services.</p>
+<h2 id="install-dependency"><a class="header" href="#install-dependency">Install dependency</a></h2>
+<p>To be updated</p>
+<pre><code>sudo apt install -y smbclient ntp
+</code></pre>
+<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
+<p>If you follow <a href="./debian-guest.html">Debian guest</a> chapter then below are all you need to do. Otherwise, check <a href="https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Preparing_the_Installation">the official Samba Wiki</a>.</p>
+<pre><code>sudo systemctl disable --now smbd nmbd winbind
+sudo sed -nie &quot;p; s/127.0.1.1/$(ip -o -6 addr | grep -v -e &quot;1: lo&quot; -e &quot;dynamic&quot; -e &quot;link&quot; | head -n 1 | awk '{print $4}' | cut -d/ -f1)/p&quot; /etc/hosts
+sudo sed -ie &quot;s/127.0.1.1/$(ip -o -4 addr | grep -v &quot;1: lo&quot; | awk '{print $4}' | cut -d/ -f1)/&quot; /etc/hosts
+sudo rm -rf /etc/samba/smb.conf /run/samba /var/lib/samba /var/cache/samba /etc/krb5.conf
+sudo mkdir -p /var/lib/samba/private
+</code></pre>
+<h2 id="provision"><a class="header" href="#provision">Provision</a></h2>
+<p>Default configs work fine so just need to put your password here:</p>
+<pre><code>sudo samba-tool domain provision --interactive --use-rfc2307
+sudo nano /etc/samba/smb.conf
+#
+# Add the following line in [global] section
+#
+# template shell = /bin/bash
+# template homedir = /home/%U
+# winbind use default domain = yes
+#
+sudo sed -i -e &quot;s/passwd:\s*files/passwd: files winbind/&quot; -e &quot;s/group:\s*files/group: files winbind/&quot; /etc/nsswitch.conf
+echo &quot;session required pam_mkhomedir.so&quot; | sudo tee -a /etc/pam.d/common-session
+echo &quot;domain YOUR.DNS.DOMAIN&quot; | sudo tee -a /etc/resolv.conf
+echo &quot;search YOUR.DNS.DOMAIN&quot; | sudo tee -a /etc/resolv.conf
+sudo cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
+sudo sed -ie &quot;s/default kod notrap nomodify nopeer noquery limited/default kod notrap nomodify nopeer limited mssntp/g&quot; /etc/ntp.conf
+echo &quot;ntpsigndsocket /var/lib/samba/ntp_signd/&quot; | sudo tee -a /etc/ntp.conf
+sudo chown root:ntp /var/lib/samba/ntp_signd
+sudo systemctl restart ntp
+</code></pre>
+<p>Now update your OpenWrt setting to use AD DC's DNS:</p>
+<pre><code>uci set dhcp.@dnsmasq[0].domain='YOUR.DNS.DOMAIN'
+uci set dhcp.@dnsmasq[0].local='/YOUR.DNS.DOMAIN/AD.DOMAIN.CONTROLLER.IP'
+uci add_list dhcp.guest.dhcp_option='42,192.168.2.2' # NTP Server
+uci add_list dhcp.guest.dhcp_option='44,192.168.2.2' # NetBIOS Name Server
+uci commit
+/etc/init.d/dnsmasq restart
+</code></pre>
+<h2 id="check-if-ad-dc-is-working"><a class="header" href="#check-if-ad-dc-is-working">Check if AD DC is working</a></h2>
+<pre><code>AD_REALM=SAMDOM.EXAMPLE.COM
+DC=DC01
+
+sudo samba # automatically running in the background
+smbclient -L localhost -N
+smbclient //localhost/netlogon -UAdministrator -c 'ls'
+host -t SRV _ldap._tcp.${AD_REALM}
+host -t SRV _kerberos._udp.${AD_REALM}
+host -t A ${DC}.${AD_REALM}.
+kinit administrator
+klist
+</code></pre>
+<h2 id="enable-sambe-permanently"><a class="header" href="#enable-sambe-permanently">Enable Sambe permanently</a></h2>
+<pre><code>sudo systemctl unmask samba-ad-dc
+sudo systemctl enable samba-ad-dc
+sudo reboot
+</code></pre>
+<h2 id="reference"><a class="header" href="#reference">Reference</a></h2>
+<p><a href="https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller">Samba Wiki</a>
+<a href="https://wiki.samba.org/index.php/Configuring_Winbindd_on_a_Samba_AD_DC">Samba Wiki-Winbind</a>
+<a href="https://wiki.archlinux.org/title/Samba/Active_Directory_domain_controller">Arch Wiki</a></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="join-samba-active-directory-domain"><a class="header" href="#join-samba-active-directory-domain">Join Samba Active Directory Domain</a></h1>
+<p>In this chapter, we will join our existing AD domain.</p>
+<h2 id="preparation-1"><a class="header" href="#preparation-1">Preparation</a></h2>
+<pre><code>sudo systemctl stop smbd nmbd winbind
+sudo rm -rf /etc/samba/smb.conf /run/samba /var/lib/samba /var/cache/samba /etc/krb5.conf
+sudo mkdir -p /var/lib/samba/private
+sudo sed -ie &quot;s/^127.0.1.1.*$//&quot; /etc/hosts
+</code></pre>
+<h2 id="check-if-ad-dns-is-working"><a class="header" href="#check-if-ad-dns-is-working">Check if AD DNS is working</a></h2>
+<pre><code>AD_REALM=SAMDOM.EXAMPLE.COM
+DC=DC01
+
+host -t SRV _ldap._tcp.${AD_REALM}
+host -t SRV _kerberos._udp.${AD_REALM}
+host -t A ${DC}.${AD_REALM}.
+host AD.DOMAIN.CONTROLLER.IP
+</code></pre>
+<h2 id="configure-kerberos-and-samba"><a class="header" href="#configure-kerberos-and-samba">Configure Kerberos and Samba</a></h2>
+<pre><code>AD_REALM=SAMDOM.EXAMPLE.COM
+WORKGROUP=SAMDOM
+
+cat &lt;&lt; EOF | sudo tee /etc/krb5.conf
+[libdefaults]
+    default_realm = ${AD_REALM}
+    dns_lookup_realm = false
+    dns_lookup_kdc = true
+EOF
+
+cat &lt;&lt; EOF | sudo tee /etc/samba/smb.conf
+[global]
+    security = ADS
+    workgroup = ${WORKGROUP}
+    realm = ${AD_REALM}
+
+    idmap config * : backend = autorid
+    idmap config * : range = 10000-9999999
+
+    username map = /usr/local/samba/etc/user.map
+
+    template shell = /bin/bash
+    template homedir = /home/%U
+    winbind use default domain = yes
+EOF
+
+sudo mkdir -p /usr/local/samba/etc/
+echo '!root = ${WORKGROUP}\Administrator' | sudo tee /usr/local/samba/etc/user.map
+</code></pre>
+<h2 id="joining-domain"><a class="header" href="#joining-domain">Joining domain</a></h2>
+<pre><code>sudo net ads join -U Administrator
+sudo systemctl start smbd nmbd winbind
+sudo sed -i -e &quot;s/passwd:\s*files/passwd: files winbind/&quot; -e &quot;s/group:\s*files/group: files winbind/&quot; /etc/nsswitch.conf
+echo &quot;session required pam_mkhomedir.so&quot; | sudo tee -a /etc/pam.d/common-session
+</code></pre>
+<h2 id="testing"><a class="header" href="#testing">Testing</a></h2>
+<pre><code>wbinfo --ping-dc
+getent passwd SAMDOM\\Administrator
+getent group &quot;SAMDOM\\Domain Users&quot;
+touch /tmp/samba_test
+sudo chown &quot;SAMDOM\\Administrator:SAMDOM\\Domain Users&quot; /tmp/samba_test
+ls -la /tmp/samba_test
+</code></pre>
+<h2 id="reference-1"><a class="header" href="#reference-1">Reference</a></h2>
+<p><a href="https://wiki.samba.org/index.php/Setting_up_Samba_as_a_Domain_Member">Samba Wiki</a>
+<a href="https://wiki.samba.org/index.php/Authenticating_Domain_Users_Using_PAM">Samba Wiki-Winbind</a></p>
 
                     </main>
 
