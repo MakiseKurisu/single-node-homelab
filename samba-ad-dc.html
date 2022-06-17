@@ -178,8 +178,7 @@ sudo systemctl restart ntp
 <p>Now update your OpenWrt setting to use AD DC's DNS:</p>
 <pre><code>uci set dhcp.@dnsmasq[0].domain='YOUR.DNS.DOMAIN'
 uci set dhcp.@dnsmasq[0].local='/YOUR.DNS.DOMAIN/AD.DOMAIN.CONTROLLER.IP'
-uci add_list dhcp.guest.dhcp_option='42,192.168.2.2' # NTP Server
-uci add_list dhcp.guest.dhcp_option='44,192.168.2.2' # NetBIOS Name Server
+uci add_list dhcp.guest.dhcp_option='42,AD.DOMAIN.CONTROLLER.IP' # NTP Server
 uci commit
 /etc/init.d/dnsmasq restart
 </code></pre>
