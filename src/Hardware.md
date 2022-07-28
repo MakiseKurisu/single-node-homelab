@@ -8,21 +8,21 @@ First, check [`r/homelab`](https://www.reddit.com/r/homelab/wiki/index) and [`r/
 
 ### Case
 
-For the case, I prefer ATX tower with a lot of hard drive bays. I have built 2 NZXT Source 220 based systems (one sold when I moved and one currently in use) and am very happy about this case. Sadly this cheap case is no longer in manufacture so you have to *source* it from 2nd hand market. It has 8 3.5-inch bays and 3 5.25 bays which can be adapted to 5 more 3.5-inch bays, giving you a total of 13 hard drive bays. Not all 8 3.5 bays are usable when GPU is plugged in, but that raw number combined with the fact that the price of an 18TB hard drive has been bearable due to crypto crash means this case can probably meet a lot of people's storage need.
+For the case, I prefer ATX tower with a lot of hard drive bays. I have built 2 NZXT Source 220 based systems (one sold when I moved and one currently in use) and am very happy about this case. Sadly this cheap case is no longer in manufacture so you have to *source* it from 2nd hand market. It has 8 3.5-inch bays and 3 5.25 bays which can be adapted to 5 more 3.5-inch bays, giving you a total of 13 hard drive bays. Not all 8 3.5 bays are usable when GPU is plugged in, but that raw number combined with the fact that the price of an 18TB hard drive has been bearable due to crypto crash means this case can meet a lot of people's storage need.
 
-If you cannot find a used Source 220, Fractal Design Meshify 2 XL will be my next choice. Yes, we just jumped from a cheap ass case to a top-of-the-line premium case, but ultimately Meshify 2 XL is the only other case that I know that can house even more hard drives AND a 3rd GPU. Most cases these days no longer prioritize hard drive bays so not a lot of choices are available. Case has a very long life so if you are OK with how big it is this case should last you a long time.
+If you cannot find a used Source 220, NZXT H2 has the same internal but worse cooling. From the same era Fractal Design R3 has 1 less 5.25 bay but 3.5 bays are more accessable and cooling is better than H2. For something current Fractal Design Meshify 2 (or XL) will be my next choice. Non XL with 11 3.5 bays can fulfill most users' need, but if you need more drives XL can equip up to 18 disks. Case has a very long life so if you are OK with how big it is this case should last you a long time.
 
 ### Power supply
 
-Aim for a modular power supply over 750W with the Gold rating or higher. Like the case, PSU last a long time, and a beefy one can survive multiple upgrade cycles when more hard drives or GPUs are added. 2nd hand PSU is not recommended but that was what I did anyway. On one hand, I still save money even when **2** failed and I had to buy the 3rd one. On the other hand downtime and playing your data with fire. I have mixed feelings but I probably will keep doing it just because I'm so cheap.
+Give 200W budget per CPU and 300W per GPU with 10W per disk, and buy PSU accordingly. Effiency is maxed around 50% load so it's okay to buy an oversized PSU. I'm running Seasonic FOCUS GX-850 for a 1C1G configuration with plan to add 2nd GPU in the future. Like the case, PSU last a long time, and a beefy one can be used longer. 2nd hand PSU is **strongly discouraged**, and only quality brands may be considered. The first system I built had an used Corsair PSU, and that one was fine. On my current system I did that again with a lower tier OEM because their used PSU has high wattage, and in the end I have 3 failed PSU, broken motherboard, and failed CPU.
 
 ### Platform
 
 AM4 platform is EOL but there is still plenty of life left in this platform. You can also use AM4 cooler on AM5 so get a good one. Motherboards are recommended in the following order:
 
-1. ASRock Fatal1ty X370 Professional Gaming (what I'm using right now)
+1. ASRock Fatal1ty X370 Professional Gaming (what I was using)
 2. ASRock X470 Taichi Ultimate
-3. ASRock X370 Taichi
+3. ASRock X370 Taichi (currently using)
 4. X570 boards with multi-gig Ethernet, but just get ASRock X370 Taichi
 
 This is mostly based on network connectivity. X370 PG is the only X370 with 5GbE and X470 TU is the only X470 with 10GbE (excluding the ASRock Rack offering which is a lot more expensive). Being the halo products they, unfortunately, have very limited availability (especially X470 TU). In that case, I'll just go with X370 Taichi which is X370 PG minus the 5GbE, and rely on a USB or PCIe network card if I do need the extra port or bandwidth.
