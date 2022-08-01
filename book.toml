@@ -2,7 +2,7 @@
 authors = ["Makise Kurisu"]
 language = "en"
 multilingual = false
-src = "src"
+src = "doc"
 title = "Single Node Homelab"
 
 [output.html]
