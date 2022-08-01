@@ -1,1 +1,5 @@
-book
+/book
+/hosts
+/vars.yaml
+/lg-win
+/resource
