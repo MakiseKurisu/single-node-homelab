@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Software - Single Node Homelab</title>
+        <title>Set up Proxmox - Single Node Homelab</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html" class="active"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">2.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">2.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html" class="active"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -113,7 +113,7 @@
                         <a href="https://github.com/MakiseKurisu/single-node-homelab/tree/main" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/src/Software.md" title="Suggest an edit" aria-label="Suggest an edit">
+                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/doc/proxmox.md" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
                     </div>
@@ -140,16 +140,49 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="software"><a class="header" href="#software">Software</a></h1>
+                        <h1 id="set-up-proxmox"><a class="header" href="#set-up-proxmox">Set up Proxmox</a></h1>
+<h2 id="prepare-host"><a class="header" href="#prepare-host">Prepare host</a></h2>
+<p>Since we will perform a lot of system configurations throughout this guide, I have created some Ansible playbooks to automate the task for you. You can download this repo to get it:</p>
+<pre><code class="language-bash">git clone --depth 1 https://github.com/MakiseKurisu/single-node-homelab.git
+cd single-node-homelab
+</code></pre>
+<p>Unless otherwise noted, we will always <strong>start</strong> running command from this folder. The command itself might lead you to somewhere else, but we will take you back in the end. We also assume you are running those commands under Linux. For Windows users you can install WSL2 and start following from there.</p>
+<p>Now let's prep the Proxmox server to allow Ansible configuration, and also set some varibles for this project:</p>
+<pre><code class="language-bash">./bootstrap provision proxmox_fqdn
+# or when running non interactively, find out the available options
+# Currently there is TUNA mirror option for users in China, and merged driver option for NVIDIA card to output graphic on Proxmox
+./bootstrap
+</code></pre>
+<p>Some options are used later on if you don't know what they are for, but defaults should be sane enough for most people.</p>
+<h2 id="basic-proxmox-configuration"><a class="header" href="#basic-proxmox-configuration">Basic Proxmox Configuration</a></h2>
+<p>Run the following command in the same folder to perform some basic Proxmox setup:</p>
+<pre><code class="language-bash"># Review the tasks...
+./bootstrap ansible proxmox-init --list-tasks
+# and run!
+./bootstrap ansible proxmox-init
+</code></pre>
+<p>The playbook will install 2 helper scripts. <code>lsiommu</code> will show you the IOMMU grouping on your machine. While <code>pve-helper</code> is a PVE snippet that can run some configuration tasks when you start/stop a VM.</p>
+<p>Before you continue to the next chapter, we recommend you to first download the necessary system ISO and drivers first. Luckily <code>bootstrap</code> can do most of those for you, except for the Windows ISO. Go to <a href="https://www.microsoft.com/software-download/windows11">Microsoft</a> to download Windows 11 ISO, and save it to the <code>resource</code> folder. We will also download some additional ISOs, and upload them to Proxmox here:</p>
+<pre><code class="language-bash">mkdir -p ./resource
+wget --content-disposition -P &quot;./resource&quot; &quot;some_microsoft_iso_link&quot; &amp;
+./bootstrap iso --all
+</code></pre>
+<p>Some commands later on expect the necessary files are already downloaded in</p>
+<h1 id="todo"><a class="header" href="#todo">TODO</a></h1>
+<p>vendor-reset
+nvenc check on quadro spoof
+https://en.wikibooks.org/wiki/Multiseat_Configuration/Xephyr
+https://lists.x.org/archives/xorg-devel/2015-April/046071.html
+https://www.phoronix.com/forums/forum/linux-graphics-x-org-drivers/x-org-drm/49351-single-gpu-multi-seat-support-with-x-org-under-xephyr/page2</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="Hardware.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="pws.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="debian-guest.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="vgpu.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -158,10 +191,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="Hardware.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="pws.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="debian-guest.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="vgpu.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

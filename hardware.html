@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html" class="active"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">2.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">2.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html" class="active"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -113,7 +113,7 @@
                         <a href="https://github.com/MakiseKurisu/single-node-homelab/tree/main" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/src/Hardware.md" title="Suggest an edit" aria-label="Suggest an edit">
+                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/doc/hardware.md" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
                     </div>
@@ -145,16 +145,16 @@
 <h2 id="what-specs-should-i-look-for"><a class="header" href="#what-specs-should-i-look-for">What specs should I look for?</a></h2>
 <p>First, check <a href="https://www.reddit.com/r/homelab/wiki/index"><code>r/homelab</code></a> and <a href="https://www.reddit.com/r/homelab/wiki/index"><code>r/DataHoarder</code></a> wiki. Their hardware guides should give you a good start.</p>
 <h3 id="case"><a class="header" href="#case">Case</a></h3>
-<p>For the case, I prefer ATX tower with a lot of hard drive bays. I have built 2 NZXT Source 220 based systems (one sold when I moved and one currently in use) and am very happy about this case. Sadly this cheap case is no longer in manufacture so you have to <em>source</em> it from 2nd hand market. It has 8 3.5-inch bays and 3 5.25 bays which can be adapted to 5 more 3.5-inch bays, giving you a total of 13 hard drive bays. Not all 8 3.5 bays are usable when GPU is plugged in, but that raw number combined with the fact that the price of an 18TB hard drive has been bearable due to crypto crash means this case can probably meet a lot of people's storage need.</p>
-<p>If you cannot find a used Source 220, Fractal Design Meshify 2 XL will be my next choice. Yes, we just jumped from a cheap ass case to a top-of-the-line premium case, but ultimately Meshify 2 XL is the only other case that I know that can house even more hard drives AND a 3rd GPU. Most cases these days no longer prioritize hard drive bays so not a lot of choices are available. Case has a very long life so if you are OK with how big it is this case should last you a long time.</p>
+<p>For the case, I prefer ATX tower with a lot of hard drive bays. I have built 2 NZXT Source 220 based systems (one sold when I moved and one currently in use) and am very happy about this case. Sadly this cheap case is no longer in manufacture so you have to <em>source</em> it from 2nd hand market. It has 8 3.5-inch bays and 3 5.25 bays which can be adapted to 5 more 3.5-inch bays, giving you a total of 13 hard drive bays. Not all 8 3.5 bays are usable when GPU is plugged in, but that raw number combined with the fact that the price of an 18TB hard drive has been bearable due to crypto crash means this case can meet a lot of people's storage need.</p>
+<p>If you cannot find a used Source 220, NZXT H2 has the same internal but worse cooling. From the same era Fractal Design R3 has 1 less 5.25 bay but 3.5 bays are more accessable and cooling is better than H2. For something current Fractal Design Meshify 2 (or XL) will be my next choice. Non XL with 11 3.5 bays can fulfill most users' need, but if you need more drives XL can equip up to 18 disks. Case has a very long life so if you are OK with how big it is this case should last you a long time.</p>
 <h3 id="power-supply"><a class="header" href="#power-supply">Power supply</a></h3>
-<p>Aim for a modular power supply over 750W with the Gold rating or higher. Like the case, PSU last a long time, and a beefy one can survive multiple upgrade cycles when more hard drives or GPUs are added. 2nd hand PSU is not recommended but that was what I did anyway. On one hand, I still save money even when <strong>2</strong> failed and I had to buy the 3rd one. On the other hand downtime and playing your data with fire. I have mixed feelings but I probably will keep doing it just because I'm so cheap.</p>
+<p>Give 200W budget per CPU and 300W per GPU with 10W per disk, and buy PSU accordingly. Effiency is maxed around 50% load so it's okay to buy an oversized PSU. I'm running Seasonic FOCUS GX-850 for a 1C1G configuration with plan to add 2nd GPU in the future. Like the case, PSU last a long time, and a beefy one can be used longer. 2nd hand PSU is <strong>strongly discouraged</strong>, and only quality brands may be considered. The first system I built had an used Corsair PSU, and that one was fine. On my current system I did that again with a lower tier OEM because their used PSU has high wattage, and in the end I have 3 failed PSU, broken motherboard, and failed CPU.</p>
 <h3 id="platform"><a class="header" href="#platform">Platform</a></h3>
 <p>AM4 platform is EOL but there is still plenty of life left in this platform. You can also use AM4 cooler on AM5 so get a good one. Motherboards are recommended in the following order:</p>
 <ol>
-<li>ASRock Fatal1ty X370 Professional Gaming (what I'm using right now)</li>
+<li>ASRock Fatal1ty X370 Professional Gaming (what I was using)</li>
 <li>ASRock X470 Taichi Ultimate</li>
-<li>ASRock X370 Taichi</li>
+<li>ASRock X370 Taichi (currently using)</li>
 <li>X570 boards with multi-gig Ethernet, but just get ASRock X370 Taichi</li>
 </ol>
 <p>This is mostly based on network connectivity. X370 PG is the only X370 with 5GbE and X470 TU is the only X470 with 10GbE (excluding the ASRock Rack offering which is a lot more expensive). Being the halo products they, unfortunately, have very limited availability (especially X470 TU). In that case, I'll just go with X370 Taichi which is X370 PG minus the 5GbE, and rely on a USB or PCIe network card if I do need the extra port or bandwidth.</p>
@@ -171,10 +171,10 @@
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="Introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="Software.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="pws.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -183,10 +183,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="Introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="Software.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="pws.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Set up Samba Active Directory Domain Controller - Single Node Homelab</title>
+        <title>Create Windows vWS with vGPU and Looking Glass - Single Node Homelab</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html" class="active"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html" class="active"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -113,7 +113,7 @@
                         <a href="https://github.com/MakiseKurisu/single-node-homelab/tree/main" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/doc/samba-ad-dc.md" title="Suggest an edit" aria-label="Suggest an edit">
+                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/doc/win-vws.md" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
                     </div>
@@ -140,79 +140,34 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="set-up-samba-active-directory-domain-controller"><a class="header" href="#set-up-samba-active-directory-domain-controller">Set up Samba Active Directory Domain Controller</a></h1>
-<p>In this chapter, we will set up an AD domain controller with DNS and NTP services.</p>
-<h2 id="install-dependency"><a class="header" href="#install-dependency">Install dependency</a></h2>
-<p>To be updated</p>
-<pre><code>sudo apt install -y smbclient ntp
+                        <h1 id="create-windows-vws-with-vgpu-and-looking-glass"><a class="header" href="#create-windows-vws-with-vgpu-and-looking-glass">Create Windows vWS with vGPU and Looking Glass</a></h1>
+<p>Create your Windows VM similarly to how we created Linux VM. In this example I created a VM with VMID <code>302</code>. You can also add the same optional devices, even serial since Windows also supports serial console in the form of Windows Emergency Management Services. What's not optional though, is that you need to add 2 <code>CD/DVD Drive</code>, with <code>virtio-win.iso</code> under IDE bus 0, and <code>lg-win.iso</code> under SATA bus 1. Settings here affect how Windows assigns drive letters, so if you are not following this setting, be careful later on when there is a path listed.</p>
+<p>Now start VM and install Windows. When Windows Installer asks you <code>Where do you want to install Windows?</code>, click <code>Load driver</code>, and <code>Browse</code> <code>E:\amd64\w11</code> to install <code>Red Hat VirtIO SCSI pass-through controller</code>, <strong>AND</strong> <code>E:\NetKVM\w11\amd64\</code> to install <code>Red Hat VirtIO Ethernet Adapter</code>. Windows is moving towards more online services, and you have to use an online account in Home edition. Pro edition is <em>currently</em> unaffected, but let's install the network driver just in case.</p>
+<p>During OOBE setup create an account <strong>with password</strong> or you won't be able to access the computer via RDP. One trick though is to create account <strong>without password</strong> then add password in <code>Settings</code> once you can access the desktop. This way I don't have to click through 3 password recovery questions. After OOBE is done, go to <code>Settings </code>-<code>System </code>-<code>Remote Desktop </code> and enable RDP (and create your password), then install VirtIO drivers with everything selected (<code>E:\virtio-win-guest-tools.exe</code>). After drivers are installed, shutdown Windows, run <code>VMID=302</code> in your Proxmox SSH session, then add the vGPU and run the same configuration commands listed in the Linux section again except <code>qm start</code>.</p>
+<p>You will then decide if you only want to access Looking Glass from local Proxmox host, or via network (like from Linux VM). If you want to allow network access, you will need to use a normal socket for SPICE. Replace</p>
+<pre><code>-spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on
 </code></pre>
-<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
-<p>If you follow <a href="./debian-guest.html">Debian guest</a> chapter then below are all you need to do. Otherwise, check <a href="https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Preparing_the_Installation">the official Samba Wiki</a>.</p>
-<pre><code>sudo systemctl disable --now smbd nmbd winbind
-sudo sed -nie &quot;p; s/127.0.1.1/$(ip -o -6 addr | grep -v -e &quot;1: lo&quot; -e &quot;dynamic&quot; -e &quot;link&quot; | head -n 1 | awk '{print $4}' | cut -d/ -f1)/p&quot; /etc/hosts
-sudo sed -ie &quot;s/127.0.1.1/$(ip -o -4 addr | grep -v &quot;1: lo&quot; | awk '{print $4}' | cut -d/ -f1)/&quot; /etc/hosts
-sudo rm -rf /etc/samba/smb.conf /run/samba /var/lib/samba /var/cache/samba /etc/krb5.conf
-sudo mkdir -p /var/lib/samba/private
+<p>with this</p>
+<pre><code>-spice addr=0.0.0.0,port=5900,disable-ticketing=on
 </code></pre>
-<h2 id="provision"><a class="header" href="#provision">Provision</a></h2>
-<p>Default configs work fine so just need to put your password here:</p>
-<pre><code>sudo samba-tool domain provision --interactive --use-rfc2307
-sudo nano /etc/samba/smb.conf
-#
-# Add the following line in [global] section
-#
-# template shell = /bin/bash
-# template homedir = /home/%U
-# winbind use default domain = yes
-#
-sudo sed -i -e &quot;s/passwd:\s*files/passwd: files winbind/&quot; -e &quot;s/group:\s*files/group: files winbind/&quot; /etc/nsswitch.conf
-echo &quot;session required pam_mkhomedir.so&quot; | sudo tee -a /etc/pam.d/common-session
-echo &quot;domain YOUR.DNS.DOMAIN&quot; | sudo tee -a /etc/resolv.conf
-echo &quot;search YOUR.DNS.DOMAIN&quot; | sudo tee -a /etc/resolv.conf
-sudo cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
-sudo sed -ie &quot;s/default kod notrap nomodify nopeer noquery limited/default kod notrap nomodify nopeer limited mssntp/g&quot; /etc/ntp.conf
-echo &quot;ntpsigndsocket /var/lib/samba/ntp_signd/&quot; | sudo tee -a /etc/ntp.conf
-sudo chown root:ntp /var/lib/samba/ntp_signd
-sudo systemctl restart ntp
+<p>run the following commands as well if you want to access VM with Looking Glass on Proxmox:</p>
+<pre><code class="language-bash">LG_USER=&quot;domain_user&quot;
+# We assume you will also set up Active Directory later, and an user called `domain_user` exist in your domain.
+# If you want to add a local user, please use `adduser`, as this one will use /etc/skel to setup new user's home folder.
+echo &quot;#lg-chown $LG_USER&quot; &gt;&gt; /etc/pve/qemu-server/$VMID.conf
+qm start $VMID
 </code></pre>
-<p>Now update your OpenWrt setting to use AD DC's DNS:</p>
-<pre><code>uci set dhcp.@dnsmasq[0].domain='YOUR.DNS.DOMAIN'
-uci set dhcp.@dnsmasq[0].local='/YOUR.DNS.DOMAIN/AD.DOMAIN.CONTROLLER.IP'
-uci add_list dhcp.guest.dhcp_option='42,AD.DOMAIN.CONTROLLER.IP' # NTP Server
-uci commit
-/etc/init.d/dnsmasq restart
-</code></pre>
-<h2 id="check-if-ad-dc-is-working"><a class="header" href="#check-if-ad-dc-is-working">Check if AD DC is working</a></h2>
-<pre><code>AD_REALM=SAMDOM.EXAMPLE.COM
-DC=DC01
-
-sudo samba # automatically running in the background
-smbclient -L localhost -N
-smbclient //localhost/netlogon -UAdministrator -c 'ls'
-host -t SRV _ldap._tcp.${AD_REALM}
-host -t SRV _kerberos._udp.${AD_REALM}
-host -t A ${DC}.${AD_REALM}.
-kinit administrator
-klist
-</code></pre>
-<h2 id="enable-sambe-permanently"><a class="header" href="#enable-sambe-permanently">Enable Sambe permanently</a></h2>
-<pre><code>sudo systemctl unmask samba-ad-dc
-sudo systemctl enable samba-ad-dc
-sudo reboot
-</code></pre>
-<h2 id="reference"><a class="header" href="#reference">Reference</a></h2>
-<p><a href="https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller">Samba Wiki</a>
-<a href="https://wiki.samba.org/index.php/Configuring_Winbindd_on_a_Samba_AD_DC">Samba Wiki-Winbind</a>
-<a href="https://wiki.archlinux.org/title/Samba/Active_Directory_domain_controller">Arch Wiki</a></p>
+<p>After VM boots up, you will have to use RDP to log in. You need to install Nvidia driver, <a href="https://looking-glass.io/docs/B5.0.1/install/#installing-the-ivshmem-driver">IVSHMEM driver</a> under <code>Win10\amd64</code> folder (<strong>make sure it reads <code>IVSHMEM Device</code> in <code>Device Manager</code></strong>, not <code>PCI standard RAM Controller</code>), and Looking Glass, which all located under <code>D:\</code>. Go to <code>Services</code> and make sure <code>Looking Glass (host)</code> service is <code>Running</code>, and you have completed the Windows VM setup. Go back to Proxmox's GUI and delete those <code>CD/DVD Drive</code>. They will shown with a strike through line, as Proxmox can't change hardware configuration when VM is ruuning, but those will be applied automatically when VM is off (including when you reboot the server, as that will shutdown all VMs first).</p>
+<p>Now login with your assigned user account on your Proxmox machine and start using Looking Glass.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="debian-guest.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="linux-vm.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="samba-ad-member.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="services.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -221,10 +176,10 @@ sudo reboot
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="debian-guest.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="linux-vm.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="samba-ad-member.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="services.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

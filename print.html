@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">2.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">2.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -162,16 +162,16 @@
 <h2 id="what-specs-should-i-look-for"><a class="header" href="#what-specs-should-i-look-for">What specs should I look for?</a></h2>
 <p>First, check <a href="https://www.reddit.com/r/homelab/wiki/index"><code>r/homelab</code></a> and <a href="https://www.reddit.com/r/homelab/wiki/index"><code>r/DataHoarder</code></a> wiki. Their hardware guides should give you a good start.</p>
 <h3 id="case"><a class="header" href="#case">Case</a></h3>
-<p>For the case, I prefer ATX tower with a lot of hard drive bays. I have built 2 NZXT Source 220 based systems (one sold when I moved and one currently in use) and am very happy about this case. Sadly this cheap case is no longer in manufacture so you have to <em>source</em> it from 2nd hand market. It has 8 3.5-inch bays and 3 5.25 bays which can be adapted to 5 more 3.5-inch bays, giving you a total of 13 hard drive bays. Not all 8 3.5 bays are usable when GPU is plugged in, but that raw number combined with the fact that the price of an 18TB hard drive has been bearable due to crypto crash means this case can probably meet a lot of people's storage need.</p>
-<p>If you cannot find a used Source 220, Fractal Design Meshify 2 XL will be my next choice. Yes, we just jumped from a cheap ass case to a top-of-the-line premium case, but ultimately Meshify 2 XL is the only other case that I know that can house even more hard drives AND a 3rd GPU. Most cases these days no longer prioritize hard drive bays so not a lot of choices are available. Case has a very long life so if you are OK with how big it is this case should last you a long time.</p>
+<p>For the case, I prefer ATX tower with a lot of hard drive bays. I have built 2 NZXT Source 220 based systems (one sold when I moved and one currently in use) and am very happy about this case. Sadly this cheap case is no longer in manufacture so you have to <em>source</em> it from 2nd hand market. It has 8 3.5-inch bays and 3 5.25 bays which can be adapted to 5 more 3.5-inch bays, giving you a total of 13 hard drive bays. Not all 8 3.5 bays are usable when GPU is plugged in, but that raw number combined with the fact that the price of an 18TB hard drive has been bearable due to crypto crash means this case can meet a lot of people's storage need.</p>
+<p>If you cannot find a used Source 220, NZXT H2 has the same internal but worse cooling. From the same era Fractal Design R3 has 1 less 5.25 bay but 3.5 bays are more accessable and cooling is better than H2. For something current Fractal Design Meshify 2 (or XL) will be my next choice. Non XL with 11 3.5 bays can fulfill most users' need, but if you need more drives XL can equip up to 18 disks. Case has a very long life so if you are OK with how big it is this case should last you a long time.</p>
 <h3 id="power-supply"><a class="header" href="#power-supply">Power supply</a></h3>
-<p>Aim for a modular power supply over 750W with the Gold rating or higher. Like the case, PSU last a long time, and a beefy one can survive multiple upgrade cycles when more hard drives or GPUs are added. 2nd hand PSU is not recommended but that was what I did anyway. On one hand, I still save money even when <strong>2</strong> failed and I had to buy the 3rd one. On the other hand downtime and playing your data with fire. I have mixed feelings but I probably will keep doing it just because I'm so cheap.</p>
+<p>Give 200W budget per CPU and 300W per GPU with 10W per disk, and buy PSU accordingly. Effiency is maxed around 50% load so it's okay to buy an oversized PSU. I'm running Seasonic FOCUS GX-850 for a 1C1G configuration with plan to add 2nd GPU in the future. Like the case, PSU last a long time, and a beefy one can be used longer. 2nd hand PSU is <strong>strongly discouraged</strong>, and only quality brands may be considered. The first system I built had an used Corsair PSU, and that one was fine. On my current system I did that again with a lower tier OEM because their used PSU has high wattage, and in the end I have 3 failed PSU, broken motherboard, and failed CPU.</p>
 <h3 id="platform"><a class="header" href="#platform">Platform</a></h3>
 <p>AM4 platform is EOL but there is still plenty of life left in this platform. You can also use AM4 cooler on AM5 so get a good one. Motherboards are recommended in the following order:</p>
 <ol>
-<li>ASRock Fatal1ty X370 Professional Gaming (what I'm using right now)</li>
+<li>ASRock Fatal1ty X370 Professional Gaming (what I was using)</li>
 <li>ASRock X470 Taichi Ultimate</li>
-<li>ASRock X370 Taichi</li>
+<li>ASRock X370 Taichi (currently using)</li>
 <li>X570 boards with multi-gig Ethernet, but just get ASRock X370 Taichi</li>
 </ol>
 <p>This is mostly based on network connectivity. X370 PG is the only X370 with 5GbE and X470 TU is the only X470 with 10GbE (excluding the ASRock Rack offering which is a lot more expensive). Being the halo products they, unfortunately, have very limited availability (especially X470 TU). In that case, I'll just go with X370 Taichi which is X370 PG minus the 5GbE, and rely on a USB or PCIe network card if I do need the extra port or bandwidth.</p>
@@ -183,7 +183,164 @@
 <p>Right now I'm using 2x32GB 3200MHz ECC ram. My workstation has been 32GB for a long time so pairing another 32GB for services and 2nd GPU VM makes sense. This also leaves me an upgrade path to 128GB memory should I need that much (which can be possible if using vGPU for virtual desktops). So the recommendation is to put the double amount of memory you are currently using to the host.</p>
 <h3 id="gpu"><a class="header" href="#gpu">GPU</a></h3>
 <p>To use <a href="https://github.com/DualCoder/vgpu_unlock">vGPU unlock</a>, you need Maxwell/Pascal/Turing based Nvidia GPU and a good amount of vram to be useful. Some recommended cards are Tesla M40/P40 24GB for dedicated vGPU, or Geforce Titan X (Pascal) / Geforce GTX 1080 Ti for using the combined driver. Those cards have a good amount of vram while fast enough to be comfortably shared by many guests. Since we only have 2-3 PCIe slots for GPU a cheaper one basically &quot;wastes&quot; it, but they can be used nonetheless. With a Titan X you don't have to mess with cooling and can use as a passthrough GPU for now. Once you need a better GPU (that may not be supported by vGPU unlock), you can still share it with guests, maximizing the use-value.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="software"><a class="header" href="#software">Software</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="proxmox-workstation"><a class="header" href="#proxmox-workstation">Proxmox Workstation</a></h1>
+<p>In this section, we will set up a Proxmox-based VM host with virtual workstation capability. However, not everyone wants to run desktop directly on their server, so we offer 3 different configurations here:</p>
+<ol>
+<li>No host GPU driver. VFIO passthrough only.</li>
+<li>Install vGPU driver, but no desktop environment to view VM's graphic output locally.</li>
+<li>Install vGPU driver, host driver, and X11 with Looking Glass to view and control VM locally.</li>
+<li>X11 Multiseats with NVENC unlocked so 4 users can run Looking Glass simultaneously a.k.a da dream.</li>
+</ol>
+<p>I planned to go with 3 initially and develop a solution for 4, but found out that Looking Glass's Linux host is immature at this moment, and there is way to much to install to for a mere Moonlight access. I'm currently going with 2, and passed RX460 to Linux with PRIME to run games on vGPU.</p>
+<p>If you primarily use Windows and accept only accessing Linux via Moonlight, then you can go with 3.</p>
+<p>The setup process has been roughly divided into those 3 parts, so just follow along and skip the section you don't need.</p>
+<h2 id="hardware-configuration"><a class="header" href="#hardware-configuration">Hardware configuration</a></h2>
+<ul>
+<li>ASRock <del>Fatal1ty X370 Professional Gaming</del> X370 Taichi P7.10 Motherboard</li>
+<li>AMD Ryzen 7 3700X Processor</li>
+<li>Samsung DDR4 3200MHz 32GB Memory x2</li>
+<li>Samsung 970 Evo 1TB NVMe SSD</li>
+<li>Gigabyte 120GB SATA SSD</li>
+<li>NVIDIA Titan X GPU</li>
+<li>AMD RX460 GPU</li>
+</ul>
+<h2 id="proxmox-installation-tips"><a class="header" href="#proxmox-installation-tips">Proxmox installation tips</a></h2>
+<p>Config BIOS first. Enable virtualization-related features like VT-d, IOMMU, SR-IOV, above 4G decode, etc.</p>
+<p>Install Proxmox as you wish. On disk setup, I use <code>btrfs</code> RAID-1 instead of <code>zfs</code>. If you choose differently you will need to update some scripts later on as currently the storage path is hardcoded (search <code>local-btrfs</code>). This principle applies whenever you deviate from the guide.</p>
+<p>I also used to run Proxmox on dual USB thumb drives on an internal USB 3.0 header. However, occasionally one of the USB drives will be missing, <code>btrfs</code> will fail to mount, and Proxmox will stop booting. Manual reset fixes the issue but that doesn't play well with Wake-on-Lan. As such I just install Proxmox to a SATA SSD instead.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="set-up-proxmox"><a class="header" href="#set-up-proxmox">Set up Proxmox</a></h1>
+<h2 id="prepare-host"><a class="header" href="#prepare-host">Prepare host</a></h2>
+<p>Since we will perform a lot of system configurations throughout this guide, I have created some Ansible playbooks to automate the task for you. You can download this repo to get it:</p>
+<pre><code class="language-bash">git clone --depth 1 https://github.com/MakiseKurisu/single-node-homelab.git
+cd single-node-homelab
+</code></pre>
+<p>Unless otherwise noted, we will always <strong>start</strong> running command from this folder. The command itself might lead you to somewhere else, but we will take you back in the end. We also assume you are running those commands under Linux. For Windows users you can install WSL2 and start following from there.</p>
+<p>Now let's prep the Proxmox server to allow Ansible configuration, and also set some varibles for this project:</p>
+<pre><code class="language-bash">./bootstrap provision proxmox_fqdn
+# or when running non interactively, find out the available options
+# Currently there is TUNA mirror option for users in China, and merged driver option for NVIDIA card to output graphic on Proxmox
+./bootstrap
+</code></pre>
+<p>Some options are used later on if you don't know what they are for, but defaults should be sane enough for most people.</p>
+<h2 id="basic-proxmox-configuration"><a class="header" href="#basic-proxmox-configuration">Basic Proxmox Configuration</a></h2>
+<p>Run the following command in the same folder to perform some basic Proxmox setup:</p>
+<pre><code class="language-bash"># Review the tasks...
+./bootstrap ansible proxmox-init --list-tasks
+# and run!
+./bootstrap ansible proxmox-init
+</code></pre>
+<p>The playbook will install 2 helper scripts. <code>lsiommu</code> will show you the IOMMU grouping on your machine. While <code>pve-helper</code> is a PVE snippet that can run some configuration tasks when you start/stop a VM.</p>
+<p>Before you continue to the next chapter, we recommend you to first download the necessary system ISO and drivers first. Luckily <code>bootstrap</code> can do most of those for you, except for the Windows ISO. Go to <a href="https://www.microsoft.com/software-download/windows11">Microsoft</a> to download Windows 11 ISO, and save it to the <code>resource</code> folder. We will also download some additional ISOs, and upload them to Proxmox here:</p>
+<pre><code class="language-bash">mkdir -p ./resource
+wget --content-disposition -P &quot;./resource&quot; &quot;some_microsoft_iso_link&quot; &amp;
+./bootstrap iso --all
+</code></pre>
+<p>Some commands later on expect the necessary files are already downloaded in</p>
+<h1 id="todo"><a class="header" href="#todo">TODO</a></h1>
+<p>vendor-reset
+nvenc check on quadro spoof
+https://en.wikibooks.org/wiki/Multiseat_Configuration/Xephyr
+https://lists.x.org/archives/xorg-devel/2015-April/046071.html
+https://www.phoronix.com/forums/forum/linux-graphics-x-org-drivers/x-org-drm/49351-single-gpu-multi-seat-support-with-x-org-under-xephyr/page2</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="install-vgpu-driver"><a class="header" href="#install-vgpu-driver">Install vGPU driver</a></h1>
+<p>Run the following command to install vGPU or merged driver, along with <code>vgpu-unlock_rs</code>.</p>
+<pre><code class="language-bash">./bootstrap ansible vgpu
+</code></pre>
+<p>If you passed <code>-v</code> option during provision, we also installed <code>xinit</code> in this step so the NVIDIA driver can detect the correct Xorg folder.</p>
+<p>The script is designed for Titan X and <code>nvidia-50</code> profile. For other configuration please edit <code>Patch vgpuConfig.xml</code> in <code>vgpu.yml</code> to fake a <strong>vGPU capable card</strong> (some options listed in <a href="https://github.com/VGPU-Community-Drivers/vGPU-Unlock-patcher">vGPU-Unlock-patcher</a>) and a <strong>Quadro card</strong> with your desired profile in <code>profile_override.toml</code>. They do not use the same PCI device ID.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="install-looking-glass-client-on-proxmox"><a class="header" href="#install-looking-glass-client-on-proxmox">Install Looking Glass client on Proxmox</a></h1>
+<p>Debian 11 does not ship <code>cage</code>, <code>sway</code> doesn't work once NVIDIA driver is installed (tried Debian shipped one and a community build), <code>weston</code> doesn't work as well. As such we will use <code>i3</code> to provide a minimal desktop environment to run Looking Glass.</p>
+<pre><code class="language-bash">./bootstrap ansible lg
+</code></pre>
+<p>We also customized <code>/etc/skel</code> a bit, so any new user we added later will run Looking Glass automatically when they log in.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="create-linux-vm-with-dgpuvgpu-and-sunshine"><a class="header" href="#create-linux-vm-with-dgpuvgpu-and-sunshine">Create Linux VM with dGPU/vGPU and Sunshine</a></h1>
+<p>The reason we want to create Linux VM with dGPU is because Looking Glass Linux Host is immature. Also you cannot passthrough vGPU with other PCIe devices, so there goes the dream to run dGPU and vGPU using PRIME. But no matter which GPU you choose, the way to do it is pretty similar, so we will have them here together.</p>
+<p>Create your Linux VM in Proxmox's GUI. Some personal perferences and tips with important one in bold:</p>
+<ul>
+<li>Infrastrucure VMID start at 101, Service VMID starts at 201, and Client VMID starts at 301. In <code>Datacenter</code>-<code>Options</code>-<code>Next Free VMID Range</code> you can set to <code>301-399</code> for your Client VMs.</li>
+<li>VMID is also mapped to IP address from XYY to 192.168.X.YY. This is done in the router with static DHCP lease.</li>
+<li>Enable <code>Start at boot</code> so unprivileged users can use VM without additional settings.</li>
+<li>Under <code>System</code> tab, use <code>q35</code> machine, <code>OVMF (UEFI)</code> BIOS,<code> VirtIO-GPU</code> graphic card, <code>VirtIO SCSI Single</code> SCSI controller, and check <code>Add TPM</code> &amp; <code>Qemu Agent</code>.</li>
+<li><strong>Uncheck <code>Pre-Enroll keys</code> in <code>System</code> tab!</strong> This will <a href="https://192.168.2.191:8006/pve-docs/chapter-qm.html#qm_bios_and_uefi">enable Secure Boot</a> which is not what we want with <a href="https://looking-glass.io/docs/B5.0.1/install/#installing-the-ivshmem-driver">Looking Glass driver</a>, or with unsigned kernel like Arch or Manjaro.</li>
+<li>For <code>Disks</code> tab, use <code>SCSI</code> bus, check <code>Discard</code>, <code>SSD emulation</code>, and <code>IO thread</code>.</li>
+<li><strong>Use <code>Write through</code> for <code>Cache</code> in <code>Disks</code> tab!</strong> <a href="https://pve.proxmox.com/pve-docs/chapter-pvesm.html#storage_btrfs">Btrfs honors <code>O_DIRECT</code></a> so need to use a <a href="https://pve.proxmox.com/wiki/Performance_Tweaks#Small_Overview">cache mode without this flag</a>.</li>
+<li>Use <code>host</code> CPU type.</li>
+<li><strong>Uncheck <code>Ballooning Device</code>!</strong> This doesn't play nicely with Nvidia drivers and could make VM unusable.</li>
+<li>Use <code>VirtIO (paravirtualized)</code> network card.</li>
+<li><strong>Do not check <code>Start after created</code>!</strong> We will make more changes before we start the VM.</li>
+</ul>
+<p>After those steps I have created a VM with VMID <code>301</code>. Now go to <code>Hardware</code> and add <code>Serial Port</code> and <code>VirtIO RNG</code>, which are optional since you can also use SSH to control the VM. If you have no hardware audio card to passthrough you will need to add an <code>Audio Device</code>. If you have a working vGPU setup, you can now add <code>PCI Device</code> to your VM, and <code>Meditated Device</code> will say <code>Yes</code> for your GPU. Select it, choose the profile in <code>MDev Type</code>, and check every available options. Otherwise, just add your PCIe devices here.</p>
+<p>Now start VM and install your favorite distro. Right now uou can use a Spice viewer like <code>virt-viewer</code> to control the VM, instead of Proxmox's noVNC web console. For distro I'm using Manjaro. Once everything is done, let's run the following commands in the Spice viewer or noVNC to enable remote access:</p>
+<pre><code class="language-bash">sudo systemctl enable --now sshd serial-getty@ttyS0
+</code></pre>
+<p>The reason we do this is that once you can remote console, you can copy and paste command in your local terminal, which is not something you can do with Proxmox's noVNC. You can then find the IP address on Proxmox's VM page. Here we will show you how to use the VirtIO serial console, since we will also run some commands in Proxmox as well:</p>
+<pre><code class="language-bash">PVE_IP=&quot;$(grep &quot;ansible_host&quot; hosts | tr -s ' ' | cut -d ' ' -f 3)&quot;
+ssh root@$PVE_IP
+# Below commands in Proxmox SSH
+VMID=301
+qm terminal $VMID
+#############
+# You will see a message telling you that press Ctrl+O exit this terminal.
+# Unlike SSH, Ctrl+O won't kill the current session.
+#############
+## Below commands in Manjaro Terminal
+## Login with your account first
+chsh -s /usr/bin/zsh
+sudo sed -i &quot;s/#ParallelDownloads/ParallelDownloads/&quot; /etc/pacman.conf
+sudo pacman-mirrors -c China # Obviously use something else if you are not in China
+sudo pacman -Syu --noconfirm yay
+yay -S --noconfirm --needed base-devel linux515-headers dkms looking-glass obs-plugin-looking-glass looking-glass-module-dkms sunshine plasma-wayland-session
+cat &lt;&lt; EOF &gt; /etc/X11/xorg.conf.d/20-amdgpu.conf
+Section &quot;Device&quot;
+     Identifier &quot;AMD&quot;
+     Driver &quot;amdgpu&quot;
+     Option &quot;VariableRefresh&quot; &quot;true&quot;
+EndSection
+EOF
+# Update user below to match your username
+cat &lt;&lt; EOF | sudo tee /etc/tmpfiles.d/10-looking-glass.conf
+#Type Path        Mode UID  GID  Age Argument
+f     /dev/kvmfr0 0660 user root -
+EOF
+sudo poweroff
+# Now you are back in Proxmox SSH
+</code></pre>
+<pre><code class="language-bash"># Below commands in Proxmox SSH
+qm set $VMID --hookscript=local-btrfs:snippets/pve-helper
+sed -i -E -e 's/^vga:.*$/vga: none/' -e 's/^ide2:.*$//' /etc/pve/qemu-server/$VMID.conf
+cat &lt;&lt; EOF &gt;&gt; /etc/pve/qemu-server/$VMID.conf
+tablet: 0
+ivshmem: size=64,name=302
+EOF
+echo &quot;args: -uuid $(qm showcmd $VMID | sed -E &quot;s_.*/(\w*-0000-0000-0000-\w*).*_\1_&quot;) -cpu host,-hypervisor,kvm=off,hv_vendor_id=AuthenticAMD,topoext -device virtio-mouse-pci -device virtio-keyboard-pci -spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on -device virtio-serial-pci -chardev spicevmc,id=vdagent,name=vdagent -device virtserialport,chardev=vdagent,name=com.redhat.spice.0&quot; &gt;&gt; /etc/pve/qemu-server/$VMID.conf
+qm start $VMID
+# Leave this SSH session running, as we will use it during Windows setup
+</code></pre>
+<p>We put <code>name=302</code> in <code>$VMID.conf</code> because by default, Proxmox will create IVSHMEM file suffixed with your VMID. However, we want to access Windows (VMID will be 302) through Looking Glass, so we need to match the name for IVSHMEM file.</p>
+<p>The last command starts the VM for you.</p>
+<h2 id="to-do"><a class="header" href="#to-do">To do</a></h2>
+<p>lg client config</p>
+<p>kvmfr0 permission</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="create-windows-vws-with-vgpu-and-looking-glass"><a class="header" href="#create-windows-vws-with-vgpu-and-looking-glass">Create Windows vWS with vGPU and Looking Glass</a></h1>
+<p>Create your Windows VM similarly to how we created Linux VM. In this example I created a VM with VMID <code>302</code>. You can also add the same optional devices, even serial since Windows also supports serial console in the form of Windows Emergency Management Services. What's not optional though, is that you need to add 2 <code>CD/DVD Drive</code>, with <code>virtio-win.iso</code> under IDE bus 0, and <code>lg-win.iso</code> under SATA bus 1. Settings here affect how Windows assigns drive letters, so if you are not following this setting, be careful later on when there is a path listed.</p>
+<p>Now start VM and install Windows. When Windows Installer asks you <code>Where do you want to install Windows?</code>, click <code>Load driver</code>, and <code>Browse</code> <code>E:\amd64\w11</code> to install <code>Red Hat VirtIO SCSI pass-through controller</code>, <strong>AND</strong> <code>E:\NetKVM\w11\amd64\</code> to install <code>Red Hat VirtIO Ethernet Adapter</code>. Windows is moving towards more online services, and you have to use an online account in Home edition. Pro edition is <em>currently</em> unaffected, but let's install the network driver just in case.</p>
+<p>During OOBE setup create an account <strong>with password</strong> or you won't be able to access the computer via RDP. One trick though is to create account <strong>without password</strong> then add password in <code>Settings</code> once you can access the desktop. This way I don't have to click through 3 password recovery questions. After OOBE is done, go to <code>Settings </code>-<code>System </code>-<code>Remote Desktop </code> and enable RDP (and create your password), then install VirtIO drivers with everything selected (<code>E:\virtio-win-guest-tools.exe</code>). After drivers are installed, shutdown Windows, run <code>VMID=302</code> in your Proxmox SSH session, then add the vGPU and run the same configuration commands listed in the Linux section again except <code>qm start</code>.</p>
+<p>You will then decide if you only want to access Looking Glass from local Proxmox host, or via network (like from Linux VM). If you want to allow network access, you will need to use a normal socket for SPICE. Replace</p>
+<pre><code>-spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on
+</code></pre>
+<p>with this</p>
+<pre><code>-spice addr=0.0.0.0,port=5900,disable-ticketing=on
+</code></pre>
+<p>run the following commands as well if you want to access VM with Looking Glass on Proxmox:</p>
+<pre><code class="language-bash">LG_USER=&quot;domain_user&quot;
+# We assume you will also set up Active Directory later, and an user called `domain_user` exist in your domain.
+# If you want to add a local user, please use `adduser`, as this one will use /etc/skel to setup new user's home folder.
+echo &quot;#lg-chown $LG_USER&quot; &gt;&gt; /etc/pve/qemu-server/$VMID.conf
+qm start $VMID
+</code></pre>
+<p>After VM boots up, you will have to use RDP to log in. You need to install Nvidia driver, <a href="https://looking-glass.io/docs/B5.0.1/install/#installing-the-ivshmem-driver">IVSHMEM driver</a> under <code>Win10\amd64</code> folder (<strong>make sure it reads <code>IVSHMEM Device</code> in <code>Device Manager</code></strong>, not <code>PCI standard RAM Controller</code>), and Looking Glass, which all located under <code>D:\</code>. Go to <code>Services</code> and make sure <code>Looking Glass (host)</code> service is <code>Running</code>, and you have completed the Windows VM setup. Go back to Proxmox's GUI and delete those <code>CD/DVD Drive</code>. They will shown with a strike through line, as Proxmox can't change hardware configuration when VM is ruuning, but those will be applied automatically when VM is off (including when you reboot the server, as that will shutdown all VMs first).</p>
+<p>Now login with your assigned user account on your Proxmox machine and start using Looking Glass.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="services"><a class="header" href="#services">Services</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="create-debian-guest"><a class="header" href="#create-debian-guest">Create Debian Guest</a></h1>
 <h2 id="configure"><a class="header" href="#configure">Configure</a></h2>
 <pre><code>apt update &amp;&amp; apt install -y ssh &amp;&amp; systemctl enable ssh &amp;&amp; poweroff

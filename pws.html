@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Introduction - Single Node Homelab</title>
+        <title>Proxmox Workstation - Single Node Homelab</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="Introduction.html" class="active">Introduction</a></li><li class="chapter-item expanded "><a href="Hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="Software.html"><strong aria-hidden="true">2.</strong> Software</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">2.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">2.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">2.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html" class="active"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -113,7 +113,7 @@
                         <a href="https://github.com/MakiseKurisu/single-node-homelab/tree/main" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/src/Introduction.md" title="Suggest an edit" aria-label="Suggest an edit">
+                        <a href="https://github.com/MakiseKurisu/single-node-homelab/edit/main/doc/pws.md" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
                     </div>
@@ -140,31 +140,40 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<blockquote>
-<p>Self hosting at home doesn't mean you need server racks or used enterprise leaf blowers. In fact, you could start with your existing gaming PC.</p>
-</blockquote>
-<h2 id="a-little-bit-of-background"><a class="header" href="#a-little-bit-of-background">A little bit of background</a></h2>
-<p>Back when I was still a college student, a laptop was all I need. My music and games went everywhere with me, along with my study material. There was no need to host them elsewhere since I need to bring my laptop anyway.</p>
-<p>After graduating, I no longer need to bring my laptop with me to work, and the game I was playing was CPU and GPU bounded, so a gaming tower was on my wish list. Coincidentally, as I also needed to do some IT works for the company, I discovered <a href="https://www.reddit.com/r/homelab/"><code>r/homelab</code></a> while learning different hypervisors. I had never heard about <a href="https://www.proxmox.com/en/">Proxmox</a> until <code>r/homelab</code> introduced it to me.</p>
-<p>Fast forwards a few years, I have set up multiple single-node Proxmox installations for various personal and professional needs. I feel like right now is the time for me to properly document my setup and process (I do have <a href="https://gist.github.com/MakiseKurisu/">some gists</a> written that may or may not have helped me get the current job), so I can easily replicate my setup in the future, and also provide some resource back to the community.</p>
-<h2 id="why-single-node"><a class="header" href="#why-single-node">Why single node?</a></h2>
-<p>Single node is not a choice but a compromise. I wish to expand to a proper multi node HA setup soon, but the following conditions limited my ability to do so (which could happen to you as well):</p>
+                        <h1 id="proxmox-workstation"><a class="header" href="#proxmox-workstation">Proxmox Workstation</a></h1>
+<p>In this section, we will set up a Proxmox-based VM host with virtual workstation capability. However, not everyone wants to run desktop directly on their server, so we offer 3 different configurations here:</p>
 <ol>
-<li>Initial investment. Multi node setup requires a greater initial investment, while the benefit of higher up-time is not as important for personal and even some professional use. Single node setup usually uses existing hardware so the opportunity cost is way smaller.</li>
-<li>Performance, heat, electricity, space, and noise with used enterprise type of equipments. A common way to reduce the initial investment is to use 2nd hand enterprise equipment, and pay more on the operational cost. However, this is not possible for me since A, the operational cost as a renter is not a small amount (I pay electricity at the above commercial rate for example) so I want to minimize those as well; and B, it is hard to fit cheap consumer GPU on the rack server and CPU on those are usually quite old and clock limited, so not ideal for gaming. My first virtualized host was a ThinkStation D30 with dual Xeon E5-2667v2, and it wasn't much faster than my Thinkpad W540 during gaming.</li>
+<li>No host GPU driver. VFIO passthrough only.</li>
+<li>Install vGPU driver, but no desktop environment to view VM's graphic output locally.</li>
+<li>Install vGPU driver, host driver, and X11 with Looking Glass to view and control VM locally.</li>
+<li>X11 Multiseats with NVENC unlocked so 4 users can run Looking Glass simultaneously a.k.a da dream.</li>
 </ol>
-<p>Currently, I'm eyeing ARM based hyper converged cluster as a cheaper way to have multi node cluster for service hosting. Then I can convert my single node host into a normal Linux machine for gaming. Until then, single node is the way for me.</p>
-<h2 id="but-homelab-is-for-messing-with-the-enterprise-network-and-enterprise-hypervisor-and-so-on"><a class="header" href="#but-homelab-is-for-messing-with-the-enterprise-network-and-enterprise-hypervisor-and-so-on">But homelab is for messing with the enterprise network and enterprise hypervisor and so on!</a></h2>
-<p>While this is true as that is what homelab means initially, right now <code>r/homelab</code> is more of a place for self-hosting home production infrastructure. Throughout this book, we are gonna host some services, set up VLANs, and create Active Directory domain with WPA-Enterprise wireless network. I think those are enterprisey enough to call what we create a homelab, and those are useful for small businesses (which is my background).</p>
-<h2 id="then-why-there-are-a-lot-of-missing-chapters"><a class="header" href="#then-why-there-are-a-lot-of-missing-chapters">Then why there are a lot of missing chapters?</a></h2>
-<p>For this book, I'm going to write it while I set up the system. Currently, I have 3 single node systems that need to be set up, so I'll pen the part I'm doing first before moving to other sections.</p>
+<p>I planned to go with 3 initially and develop a solution for 4, but found out that Looking Glass's Linux host is immature at this moment, and there is way to much to install to for a mere Moonlight access. I'm currently going with 2, and passed RX460 to Linux with PRIME to run games on vGPU.</p>
+<p>If you primarily use Windows and accept only accessing Linux via Moonlight, then you can go with 3.</p>
+<p>The setup process has been roughly divided into those 3 parts, so just follow along and skip the section you don't need.</p>
+<h2 id="hardware-configuration"><a class="header" href="#hardware-configuration">Hardware configuration</a></h2>
+<ul>
+<li>ASRock <del>Fatal1ty X370 Professional Gaming</del> X370 Taichi P7.10 Motherboard</li>
+<li>AMD Ryzen 7 3700X Processor</li>
+<li>Samsung DDR4 3200MHz 32GB Memory x2</li>
+<li>Samsung 970 Evo 1TB NVMe SSD</li>
+<li>Gigabyte 120GB SATA SSD</li>
+<li>NVIDIA Titan X GPU</li>
+<li>AMD RX460 GPU</li>
+</ul>
+<h2 id="proxmox-installation-tips"><a class="header" href="#proxmox-installation-tips">Proxmox installation tips</a></h2>
+<p>Config BIOS first. Enable virtualization-related features like VT-d, IOMMU, SR-IOV, above 4G decode, etc.</p>
+<p>Install Proxmox as you wish. On disk setup, I use <code>btrfs</code> RAID-1 instead of <code>zfs</code>. If you choose differently you will need to update some scripts later on as currently the storage path is hardcoded (search <code>local-btrfs</code>). This principle applies whenever you deviate from the guide.</p>
+<p>I also used to run Proxmox on dual USB thumb drives on an internal USB 3.0 header. However, occasionally one of the USB drives will be missing, <code>btrfs</code> will fail to mount, and Proxmox will stop booting. Manual reset fixes the issue but that doesn't play well with Wake-on-Lan. As such I just install Proxmox to a SATA SSD instead.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="next" href="Hardware.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="prev" href="hardware.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="proxmox.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -173,7 +182,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="next" href="Hardware.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="prev" href="hardware.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="proxmox.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
