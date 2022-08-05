@@ -1,0 +1,155 @@
+---
+- name: proxmox-init
+  hosts: "pve"
+  remote_user: "root"
+  vars_files:
+    - ../vars.yaml
+
+  tasks:
+    - name: Enable btrfs compression in fstab
+      ansible.posix.mount:
+        path: /
+        src: "UUID={{ ansible_mounts | json_query('[?mount == `/`] | [0].uuid') }}"
+        fstype: btrfs
+        opts: defaults,compress=zstd
+        state: present
+      tags: btrfs-compress-root
+
+    - name: Remount rootfs
+      ansible.posix.mount:
+        path: /
+        opts: defaults,compress=zstd
+        state: remounted
+      tags: btrfs-compress-root
+
+    - name: Compress existing files
+      ansible.builtin.command: btrfs filesystem defrag -rc /
+      changed_when: true
+      tags: btrfs-compress-root
+
+    - name: Unmount /boot/efi
+      ansible.posix.mount:
+        path: /boot/efi
+        state: unmounted
+      tags: proxmox-boot
+
+    - name: Remove /boot/efi fstab entry
+      ansible.posix.mount:
+        path: /boot/efi
+        state: absent
+      tags: proxmox-boot
+
+    - name: Check /etc/kernel/cmdline
+      ansible.builtin.stat:
+        path: /etc/kernel/cmdline
+      register: cmdline
+      tags: proxmox-boot
+
+    - name: Update /etc/kernel/cmdline
+      ansible.builtin.template:
+        src: proxmox-init/cmdline.j2
+        dest: /etc/kernel/cmdline
+        mode: 0644
+      when: not cmdline.stat.exists
+      tags: proxmox-boot
+
+    - name: Switch from grub to systemd boot
+      ansible.builtin.shell: |
+        if grep -q "$(blkid --match-token TYPE="vfat" -o value -s UUID)" /etc/kernel/proxmox-boot-uuids
+        then
+          exit
+        fi
+
+        EFI_DEVICE="$(blkid --match-token TYPE="vfat" -o device)"
+        proxmox-boot-tool format $EFI_DEVICE --force
+        # blkid is needed to workaround
+        # "WARN: /dev/disk/by-uuid/FFFF-FFFF does not exist"
+        # issue after formatting
+        blkid $EFI_DEVICE
+        proxmox-boot-tool init $EFI_DEVICE
+        proxmox-boot-tool clean
+        exit 125
+      args:
+        executable: /usr/bin/bash
+      register: sd_output
+      failed_when:
+        - sd_output.rc != 0
+        - sd_output.rc != 125
+      changed_when: sd_output.rc == 125
+      tags: proxmox-boot
+
+    - name: Configure TUNA mirror
+      ansible.builtin.replace:
+        path: "{{ item.path }}"
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      when: mirror == "tuna"
+      loop:
+        - { path: "/etc/apt/sources.list", regexp: "http://ftp.debian.org", replace: "https://mirrors.tuna.tsinghua.edu.cn"}
+        - { path: "/etc/apt/sources.list", regexp: "http://security.debian.org", replace: "https://mirrors.tuna.tsinghua.edu.cn/debian-security"}
+        - { path: "/usr/share/perl5/PVE/APLInfo.pm", regexp: "http://download.proxmox.com", replace: "https://mirrors.tuna.tsinghua.edu.cn/proxmox"}
+      tags: config-repos
+
+    - name: Add pve-no-subscription repo
+      ansible.builtin.template:
+        src: proxmox-init/pve-no-subscription.j2
+        dest: /etc/apt/sources.list.d/pve-no-subscription.list
+        mode: 0644
+      tags: config-repos
+
+    - name: Disable pve-enterprise repo
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list.d/pve-enterprise.list
+        regexp: '^deb'
+        replace: '#deb'
+      tags: config-repos
+
+    - name: Blacklist Nouveau driver
+      ansible.builtin.copy:
+        src: proxmox-init/nouveau-blacklist.conf
+        dest: /etc/modprobe.d/
+        mode: 0644
+      tags: no-nouveau
+
+    - name: Upgrade system
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: full
+      tags: system-update
+
+    - name: Install additional packages
+      ansible.builtin.apt:
+        name: openvswitch-switch
+      tags: system-update
+
+    - name: Purge old kernel
+      ansible.builtin.apt:
+        name: pve-kernel-5.15.30-2-pve
+        state: absent
+        autoremove: true
+      tags: system-update
+
+    - name: Install lsiommu
+      ansible.builtin.copy:
+        src: proxmox-init/lsiommu
+        dest: /usr/local/bin
+        mode: 0755
+      tags: install-utilties
+
+    - name: Create snippets folder
+      ansible.builtin.file:
+        path: /var/lib/pve/local-btrfs/snippets
+        state: directory
+        mode: 0755
+      tags: install-utilties
+
+    - name: Install pve-helper
+      ansible.builtin.copy:
+        src: proxmox-init/pve-helper
+        dest: /var/lib/pve/local-btrfs/snippets
+        mode: 0755
+      tags: install-utilties
+
+    - name: Reboot
+      ansible.builtin.reboot:
+      tags: system-reboot

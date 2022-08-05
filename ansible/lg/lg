@@ -1,0 +1,19 @@
+#!/bin/bash
+
+VMID="$1"
+
+if [[ -z "$VMID" ]]
+then
+    looking-glass-client
+elif [[ -e "/dev/shm/pve-shm-$VMID" && -e "/run/lg$VMID.socket" ]]
+then
+    looking-glass-client -f "/dev/shm/pve-shm-$VMID" -c "/run/lg$VMID.socket"
+elif [[ "$VMID" == "-h" || "$VMID" == "--help" ]]
+then
+    echo "$(basename $0) - Launch Looking Glass session for a specific virtual machine"
+    echo "Usage: $(basename $0) [VMID]"
+    echo "When VMID is omitted, will run 'looking-glass-client' dirctly."
+else
+    echo "No communication channel is available for VM '$VMID'. Is it running?" >& 2
+    exit 1
+fi

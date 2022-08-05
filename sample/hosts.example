@@ -1,0 +1,24 @@
+all:
+  children:
+    pve:
+      hosts:
+        PVE_NODE.PVE_DOMAIN:
+            ansible_host: PVE_IP
+    infra:
+      children:
+        infra_gw:
+          hosts:
+            gw01.PVE_DOMAIN:
+            dc01.PVE_DOMAIN:
+        infra_debian:
+          hosts:
+            nas01.PVE_DOMAIN:
+            app01.PVE_DOMAIN:
+    vdi:
+      children:
+        vdi_linux:
+          hosts:
+            linux01.PVE_DOMAIN:
+        vdi_windows:
+          hosts:
+            win01.PVE_DOMAIN:

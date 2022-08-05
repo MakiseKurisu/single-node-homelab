@@ -1,0 +1,102 @@
+---
+- name: looking-glass
+  hosts: "pve"
+  remote_user: "root"
+  vars_files:
+    - ../vars.yaml
+
+  tasks:
+    - name: Enforce merged driver requirement
+      ansible.builtin.fail:
+        msg: "You did not choose to install merged driver. Looking Glass will not function without that driver."
+      when: merged != "general-merge"
+      run_once: true
+      tags: check-merge
+
+    - name: Install i3 dependencies
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - i3
+          - kitty
+          - sudo
+          - libgtk-3-0
+      tags: i3-dependency
+
+    - name: Remove xterm
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - xterm
+        state: absent
+        purge: yes
+        autoremove: yes
+      tags: i3-dependency
+    
+    - name: Checkout Looking Glass
+      ansible.builtin.git:
+        repo: https://github.com/gnif/LookingGlass.git
+        dest: "{{ ansible_env.HOME + '/LookingGlass' }}"
+        version: B5.0.1
+        recursive: true
+        force: true
+      tags: get-lg-source
+
+    - name: Install Looking Glass dependencies
+      ansible.builtin.apt:
+        name:
+          - cmake
+          - pkg-config
+          - binutils-dev
+          - nettle-dev
+          - libfontconfig-dev
+          - libegl-dev
+          - libgl-dev
+          - libgles-dev
+          - libspice-protocol-dev
+          - libx11-dev
+          - libxcursor-dev
+          - libxi-dev
+          - libxinerama-dev
+          - libxpresent-dev
+          - libxss-dev
+      tags: lg-dependency
+
+    - name: Install Looking Glass
+      ansible.builtin.shell: |
+        rm -rf ~/LookingGlass/client/build
+        mkdir -p ~/LookingGlass/client/build
+        cd ~/LookingGlass/client/build
+        cmake -DENABLE_WAYLAND=no ..
+        make -j $(nproc) install
+      changed_when: true
+      tags: lg-install
+
+    - name: Install Looking Glass helper
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /usr/local/bin
+        mode: 0755
+      loop:
+        - lg/lg
+      tags: lg-helper
+
+    - name: Add default user files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /etc/skel/
+        mode: 0644
+      loop:
+        - lg/.xsession
+        - lg/.looking-glass-client.ini
+      tags: config-xsession
+
+    - name: startx on login
+      ansible.builtin.blockinfile:
+        path: /etc/skel/.profile
+        block: |
+          if [[ -t 0 && "$(tty)" == "/dev/tty1" && ! "$DISPLAY" && -n "$XDG_VTNR" ]]
+          then
+            exec startx
+          fi
+      tags: config-profile

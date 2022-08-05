@@ -1,0 +1,273 @@
+#!/bin/bash
+
+# ==============
+# Helper functions
+# ==============
+readonly ERROR_REQUIRE_PARAMETER=-1
+readonly ERROR_TOO_FEW_PARAMETERS=-2
+readonly ERROR_REQUIRE_FILE=-3
+readonly ERROR_ILLEGAL_PARAMETERS=-4
+
+__require_parameter_check() {
+    set -e
+    
+    if (( $# == 0 ))
+    then
+        echo "Incorrect usage of ${FUNCNAME[1]} from ${FUNCNAME[2]}: ${FUNCNAME[1]} requires parameter" >&2
+        return $ERROR_REQUIRE_PARAMETER
+    fi
+    set +e
+}
+
+__parameter_count_check() {
+    __require_parameter_check "$@"
+    set -e
+    
+    local expected=$1
+    shift 1
+    if (( $# != $expected ))
+    then
+        echo "'${FUNCNAME[1]}' expects '$expected' parameters while getting $#: '$@'" >&2
+        return $ERROR_TOO_FEW_PARAMETERS
+    fi
+    set +e
+}
+
+error() {
+    if [[ -n "$2" ]]
+    then
+        echo "$2" >& 2
+    fi
+    exit $1
+}
+
+in_array() {
+    local item="$1"
+    shift
+    [[ " $@ " =~ " $item " ]]
+}
+
+check_dep() {
+    local deps=("$@")
+    local missing=()
+
+    for i in ${deps[@]}
+    do
+        if ! command -v $i &> /dev/null
+        then
+            missing+=("$i")
+        fi
+    done
+    if [[ -n "$missing" ]]
+    then
+        error 1 "The following depenencies are missing from your system: ${missing[*]}"
+    fi
+}
+
+get_pve_ip() {
+    grep "ansible_host" "$SCRIPT_DIR/hosts" | tr -s ' ' | cut -d ' ' -f 3
+}
+
+# ==============
+# Features
+# ==============
+
+provision() {
+    __parameter_count_check 1 "$@"
+
+    check_dep ansible sshpass
+
+    PVE_FQDN="$1"
+    PVE_NODE="${PVE_FQDN%%.*}"
+    PVE_DOMAIN="${PVE_FQDN#*.}"
+    PVE_IP="${PVE_IP:=$(drill -Q "$PVE_FQDN")}"
+
+    if [[ -z $PVE_IP ]]
+    then
+        read -p "Please provide the IP address for ${PVE_FQDN}: " PVE_IP
+    fi
+
+    sed -e "s/PVE_NODE/$PVE_NODE/g" \
+        -e "s/PVE_DOMAIN/$PVE_DOMAIN/g" \
+        -e "s/PVE_IP/$PVE_IP/g" \
+        -E "$SCRIPT_DIR/sample/hosts.example" > "$SCRIPT_DIR/hosts"
+
+    sed -e "s/MIRROR/$PVE_MIRROR/g" \
+        -e "s/MERGED/$MERGED/g" \
+        -E "$SCRIPT_DIR/sample/vars.example" > "$SCRIPT_DIR/vars.yaml"
+
+    if ! compgen -G "$HOME/.ssh/*.pub" > /dev/null
+    then
+        ssh-keygen
+    fi
+
+    ssh-keygen -R $PVE_IP
+    ansible-playbook "$SCRIPT_DIR/ansible/ssh-copy-id.yml" -i "$SCRIPT_DIR/hosts" -l pve "${SSH_PASS[@]}" --extra-vars 'user=root' --ssh-extra-args '-o "StrictHostKeyChecking accept-new"'
+
+    echo "Your Proxmox server is now ready to work with the guide. Have fun!"
+}
+
+iso() {
+    mkdir -p "$SCRIPT_DIR/resource"
+
+    if in_array "-n" "${RESOURCE_OPT[@]}"
+    then
+        wget --content-disposition -P "$SCRIPT_DIR/resource" https://github.com/VGPU-Community-Drivers/NV-VGPU-Driver/releases/download/1.0.2/NVIDIA-Linux-x86_64-510.85.02-grid.run &
+        wget --content-disposition -P "$SCRIPT_DIR/resource" https://github.com/VGPU-Community-Drivers/NV-VGPU-Driver/releases/download/1.0.2/NVIDIA-Linux-x86_64-510.85.03-vgpu-kvm.run &
+        wget --content-disposition -P "$SCRIPT_DIR/resource" https://us.download.nvidia.com/XFree86/Linux-x86_64/510.85.02/NVIDIA-Linux-x86_64-510.85.02.run &
+    fi
+    if in_array "-w" "${RESOURCE_OPT[@]}"
+    then
+        wget --content-disposition -P "$SCRIPT_DIR/resource" https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso &
+        mkdir -p "$SCRIPT_DIR/resource/lg-win"
+        wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://looking-glass.io/artifact/B5.0.1/host &
+        wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/upstream-virtio/virtio-win10-prewhql-0.1-161.zip &
+        wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://www.monitortests.com/download/cru/cru-1.5.1.zip &
+        if in_array "-n" "${RESOURCE_OPT[@]}"
+        then
+            wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://us.download.nvidia.com/Windows/Quadro_Certified/513.46/513.46-quadro-rtx-desktop-notebook-win10-win11-64bit-international-dch-whql.exe &
+        fi
+    fi
+    if in_array "-m" "${RESOURCE_OPT[@]}"
+    then
+        wget --content-disposition -P "$SCRIPT_DIR/resource" https://download.manjaro.org/kde/21.3.5/manjaro-kde-21.3.5-minimal-220721-linux515.iso &
+    fi
+    if in_array "-d" "${RESOURCE_OPT[@]}"
+    then
+        wget --content-disposition -P "$SCRIPT_DIR/resource" https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-11.4.0-amd64-netinst.iso &
+    fi
+
+    wait
+    rm -f $SCRIPT_DIR/wget-log*
+
+    if in_array "-u" "${RESOURCE_OPT[@]}"
+    then
+        if [[ ! -f "$SCRIPT_DIR/resource/lg-win.iso" ]]
+        then
+            mkisofs -udf -iso-level 4 -o "$SCRIPT_DIR/resource/lg-win.iso" "$SCRIPT_DIR/resource/lg-win"
+        fi
+        scp $SCRIPT_DIR/resource/*.iso root@$(get_pve_ip):/var/lib/pve/local-btrfs/template/iso/
+    fi
+}
+
+# ==============
+# Runtime management
+# ==============
+
+env_init() {
+    SCRIPT_DIR="$(dirname "$(realpath "$0")")"    
+
+    SSH_PASS=( "--ask-pass" )
+    PVE_MIRROR="none"
+    unset PVE_IP
+    MERGED="vgpu"
+
+    RESOURCE_OPT=()
+}
+
+show_help() {
+    cat << EOF
+Usage 1:
+        $(basename "$0") [-h] [-p <password>] [-t] [-v]
+            [-i <ip address>] provision <fqdn>
+
+        Provision Proxmox host with a fully qualified domain name.
+
+Options:
+        -h              Show this help.
+        -p <password>   PVE's root password. Used for ssh-copy-id.
+        -i <ip address> PVE's IP address. Used when FQDN cannot be resolved by local DNS.
+        -v              Install merged driver to enbale host video output
+        -t              Use TUNA mirror.
+
+Usage 2:
+        $(basename "$0") ansible <playbook> [-- [additional ansible options]]
+
+        Run a specified Ansible playbook.
+        To pass additional options straight to 'ansble-playbook',
+        start with '--' then follow with your extra options.
+
+Usage 3:
+        $(basename "$0") [-n] [-w] [-m] [-d] [-u] [--all] iso
+
+        Download required drivers and ISOs.
+
+Options:
+        -n              Download NVIDIA Linux drivers (vGPU, GRID, normal)
+        -w              Download Windows VirtIO drivers & Looking Glass related programs
+                        When -n specified, alsow NVIDIA Windows drivers
+                        You need to download Windows ISO from:
+                        https://www.microsoft.com/software-download/windows11
+        -m              Download Manjaro ISO
+        -d              Download Debian ISO
+        -u              SCP downloaded ISOs to Proxmox server
+
+        --all           Select all above options
+EOF
+}
+
+set -e
+
+TEMP="$(getopt -o "htp:i:nmwdu" -l "all" -n "$0" -- "$@")"
+if (( $? != 0 ))
+then
+    show_help
+    exit
+fi
+eval set -- "$TEMP"
+
+env_init
+
+while true
+do
+    TEMP="$1"
+    shift
+    case "$TEMP" in
+        -p)
+            SSH_PASS=( "--extra-vars" "ansible_ssh_pass=$1" )
+            shift
+            ;;
+        -i)
+            PVE_IP="$1"
+            shift
+            ;;
+        -t)
+            PVE_MIRROR="tuna"
+            ;;
+        -v)
+            MERGED="general-merge"
+            ;;
+        -h)
+            show_help
+            exit
+            ;;
+        -n|-w|-m|-d|-u)
+            RESOURCE_OPT+=( "$TEMP" )
+            ;;
+        --all)
+            RESOURCE_OPT=( "-n" "-w" "-m" "-d" "-u" )
+            ;;
+        --)
+            break
+            ;;
+        *)
+            echo "Internal error!" >&2
+            exit 1
+            ;;
+    esac
+done
+
+case "$1" in
+    ansible)
+        TEMP="$2"
+        shift 2
+        ansible-playbook -i "$SCRIPT_DIR/hosts" "$SCRIPT_DIR/ansible/$TEMP.yml" "$@"
+        ;;
+    provision|iso)
+        "$@"
+        ;;
+    "")
+        show_help
+        exit 1
+        ;;
+esac

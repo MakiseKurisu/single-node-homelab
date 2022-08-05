@@ -1,0 +1,5 @@
+[profile.nvidia-50]
+cuda_enabled = 1
+frl_enabled = 0
+pci_device_id = 0x1B30
+pci_id = 0x1B3011A0

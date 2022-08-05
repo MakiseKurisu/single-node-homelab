@@ -1,0 +1,17 @@
+---
+- name: ssh-copy-id
+  hosts: "all"
+  remote_user: "{{ user }}"
+
+  tasks:
+    - name: Enforce limit requirement
+      ansible.builtin.fail:
+        msg: "You must use -l or --limit. When you really want to use all hosts, use -l 'all'."
+      when: ansible_limit is not defined
+      run_once: true
+
+    - name: Set authorized key for user root copying it from current user
+      ansible.posix.authorized_key:
+        user: "{{ user }}"
+        key: "{{ lookup('ansible.builtin.file', '{{ item }}') }}"
+      with_fileglob: "{{ lookup('ansible.builtin.env','HOME') + '/.ssh/*.pub' }}"

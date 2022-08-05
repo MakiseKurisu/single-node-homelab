@@ -1,0 +1,1 @@
+root=UUID={{ ansible_mounts | json_query('[?mount == `/`] | [0].uuid') }}

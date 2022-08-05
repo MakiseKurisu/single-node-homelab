@@ -1,0 +1,65 @@
+#!/bin/bash
+
+lg-chown_post-start() {
+    case $# in
+        1|2|3)
+            local owner="$(urldecode "$1")"
+            local addr="${2:-"127.0.0.1"}"
+            local port="${3:-"5900"}"
+            ;;
+        *)
+            echo "${FUNCNAME[0]} takes 'user' or 'user:group' as its argument. Got '$@'."
+            echo "Specified user's Looking Glass setting will be updated to point to this VM ($VMID)."
+            echo "User belong to the group but not explicitly specified here won't have their LG setting updated."
+            echo "When you want to change the group only, set user to 'root'. root user by default has no LG setting."
+            echo "Usually pass 'root:user' can enable user's access without updating their LG setting."
+            return 1
+            ;;
+    esac
+
+    chmod 0660 "/dev/shm/pve-shm-$VMID"
+    chown "$owner" "/dev/shm/pve-shm-$VMID"
+
+    if [[ -e "/run/lg$VMID.socket" ]]
+    then
+        chmod 0770 "/run/lg$VMID.socket"
+        chown "$owner" "/run/lg$VMID.socket"
+        addr="/run/lg$VMID.socket"
+        port="0"
+    fi
+
+    if [[ -e "/home/${owner%%:*}/.looking-glass-client.ini" ]]
+    then
+        sed -e "s_^shmFile=.*\$_shmFile=/dev/shm/pve-shm-${VMID}_g" \
+            -e "s_^host=.*\$_host=${addr}_g" \
+            -e "s_^port=.*\$_port=${port}_g" \
+            -i -E "/home/${owner%%:*}/.looking-glass-client.ini"
+    fi
+}
+
+lg-chown_post-stop() {
+    rm "/dev/shm/pve-shm-$VMID" "/run/lg$VMID.socket" 2> /dev/null || true
+}
+
+urldecode() {
+    : "${*//+/ }"
+    echo -e "${_//%/\\x}"
+}
+
+process_line() {
+    local action="$1"
+    while read
+    do
+        set -- $REPLY
+        local cmd="${1#\#}"
+        shift
+        if [[ $(type -t "${cmd}_${action}") == function ]]
+        then
+            echo "Running $action $cmd for VM $VMID..."
+            eval ${cmd}_${action} "$@"
+        fi
+    done < "/etc/pve/qemu-server/$VMID.conf"
+}
+
+VMID="$1"
+process_line "$2"

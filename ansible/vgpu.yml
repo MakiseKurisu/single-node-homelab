@@ -1,0 +1,221 @@
+---
+- name: vgpu
+  hosts: "pve"
+  remote_user: "root"
+  vars_files:
+    - ../vars.yaml
+
+  tasks:
+    - name: Install Proxmox specific packages
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          # Need to install at least pve-headers here
+          # Otherwise dkms will install linux-headers-amd64 from Debian
+          - pve-headers
+          - pve-kernel-libc-dev
+      tags: vgpu-dependency
+
+    - name: Install vGPU unlock dependencies
+      ansible.builtin.apt:
+        name:
+          - git
+          - build-essential
+          - mdevctl
+          - dkms
+          - rustc
+          - librust-pam-dev
+      tags: vgpu-dependency
+
+    - name: Install Xorg
+      ansible.builtin.apt:
+        name:
+          - xinit
+      when: merged == "general-merge"
+      tags: vgpu-dependency
+
+    - name: Checkout vGPU-Unlock-patcher
+      ansible.builtin.git:
+        repo: https://github.com/VGPU-Community-Drivers/vGPU-Unlock-patcher.git
+        dest: "{{ ansible_env.HOME + '/vGPU-Unlock-patcher' }}"
+        version: a5063dd764d2e0b714fb12e30509e75a25dabfa9
+        force: true
+      tags: get-nv-source
+
+    - name: Checkout vgpu_unlock-rs
+      ansible.builtin.git:
+        repo: https://github.com/mbilker/vgpu_unlock-rs.git
+        dest: "{{ ansible_env.HOME + '/vgpu_unlock-rs' }}"
+        version: 6deede6a655bcf20eb50d73e5b5e9f745ac4652b
+      tags: get-nv-source
+
+    - name: Checkout vendor-reset
+      ansible.builtin.git:
+        repo: https://github.com/gnif/vendor-reset.git
+        dest: "{{ ansible_env.HOME + '/vendor-reset' }}"
+        version: 7d43285a5054e4b2b18dbba771b57d365943a0f7
+      tags: get-amd-source
+
+    - name: Install vendor-reset
+      ansible.builtin.shell: |
+        cd ~/vendor-reset
+        dkms install .
+      register: cargo_output
+      changed_when: true
+      tags: reset-install
+
+    - name: Auto load vendor-reset
+      ansible.builtin.blockinfile:
+        path: /etc/modules
+        block: |
+          vendor-reset
+      tags: reset-install
+
+    - name: Upload NVIDIA driver 
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ ansible_env.HOME + '/vGPU-Unlock-patcher/' }}"
+        mode: 0644
+      with_fileglob: "../resource/*.run"
+      tags: nvidia-driver
+
+    - name: Patch vgpuConfig.xml
+      ansible.builtin.replace:
+        path: "{{ ansible_env.HOME + '/vGPU-Unlock-patcher/patch.sh' }}"
+        regexp: '( 0x\w{4}){4}'
+        # TITAN X -> Tesla P40
+        # Reference: http://pciids.sourceforge.net/pci.ids
+        # https://www.techpowerup.com/vgabios/186001/nvidia-titanxpascal-12288-160711
+        replace: ' 0x1B38 0x11D9 0x1B00 0x119A'
+      tags: patch-nvidia
+
+    - name: Create {{ merged }} driver
+      ansible.builtin.shell: |
+        cd ~/vGPU-Unlock-patcher
+        if [[ -d $(compgen -G NVIDIA-Linux-x86_64-510.85.03-vgpu-kvm*patched) ]]
+        then
+          exit
+        fi
+        ./patch.sh {{ merged }}
+        exit 125
+      register: merge_output
+      failed_when:
+        - merge_output.rc != 0
+        - merge_output.rc != 125
+      changed_when: merge_output.rc == 125
+      tags: patch-nvidia
+
+    - name: Install {{ merged }} driver
+      ansible.builtin.shell: |
+        cd ~/vGPU-Unlock-patcher/NVIDIA-Linux-x86_64-510.85.03-vgpu-kvm*patched
+        ./nvidia-installer -s --dkms
+      changed_when: true
+      tags: install-nvidia
+
+    - name: Prepare for vgpu-unlock_rs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - /usr/lib/systemd/system/nvidia-vgpud.service.d
+        - /usr/lib/systemd/system/nvidia-vgpu-mgr.service.d
+      tags: systemd
+
+    - name: Apply vgpu-unlock_rs override file
+      ansible.builtin.copy:
+        src: vgpu/vgpu_unlock-rs.conf
+        dest: "{{ item }}"
+        mode: 0644
+      loop:
+        - /usr/lib/systemd/system/nvidia-vgpud.service.d
+        - /usr/lib/systemd/system/nvidia-vgpu-mgr.service.d
+      tags: systemd
+
+    - name: Enable NVIDIA vGPU services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: true
+        masked: false
+        daemon_reload: true
+      loop:
+        - nvidia-vgpud.service
+        - nvidia-vgpu-mgr.service
+      tags: systemd
+
+    - name: Create .cargo folder
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME + '/.cargo' }}"
+        state: directory
+        mode: 0755
+      when: mirror == "tuna"
+      tags: config-rust
+
+    - name: Configure TUNA mirror
+      ansible.builtin.copy:
+        src: vgpu/config
+        dest: "{{ ansible_env.HOME + '/.cargo/config' }}"
+        mode: 0644
+      when: mirror == "tuna"
+      tags: config-rust
+
+    - name: Build vgpu_unlock-rs
+      ansible.builtin.shell: |
+        cd ~/vgpu_unlock-rs
+        cargo build -j $(nproc) --release
+      register: cargo_output
+      changed_when: true
+      tags: cargo-install
+
+    - name: Install libvgpu_unlock_rs.so
+      ansible.builtin.copy:
+        src: "{{ ansible_env.HOME + '/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so' }}"
+        dest: /usr/lib/nvidia/
+        mode: 0755
+        remote_src: true
+
+    - name: Create vgpu_unlock folder
+      ansible.builtin.file:
+        path: /etc/vgpu_unlock/
+        state: directory
+        mode: 0755
+      tags: cargo-install
+
+    - name: Add profile_override.toml
+      ansible.builtin.copy:
+        src: vgpu/profile_override.toml
+        dest: /etc/vgpu_unlock/
+        mode: 0644
+      tags: cargo-install
+
+    - name: Check nvidia-drm.modeset
+      ansible.builtin.shell: |
+        if ! grep -q "nvidia-drm.modeset=1" /etc/kernel/cmdline
+        then
+          exit 125
+        fi
+      register: drm_output
+      failed_when:
+        - drm_output.rc != 0
+        - drm_output.rc != 125
+      changed_when: drm_output.rc == 125
+      notify:
+        - Add nvidia-drm.modeset=1
+        - Apply cmdline
+      when: merged == "general-merge"
+      tags: nvidia-drm
+
+    - name: Reboot
+      ansible.builtin.reboot:
+      tags: system-reboot
+
+  handlers:
+    - name: Add nvidia-drm.modeset=1
+      ansible.builtin.replace:
+        path: /etc/kernel/cmdline
+        regexp: '^\s*(\S+)\s*$'
+        replace: '\1 nvidia-drm.modeset=1'
+
+    - name: Apply cmdline
+      ansible.builtin.command: proxmox-boot-tool refresh
+      changed_when: true
