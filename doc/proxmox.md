@@ -43,12 +43,4 @@ wget --content-disposition -P "./resource" "some_microsoft_iso_link" &
 ./bootstrap iso --all
 ```
 
-Some commands later on expect the necessary files are already downloaded in
-
-# TODO
-
-vendor-reset
-nvenc check on quadro spoof
-https://en.wikibooks.org/wiki/Multiseat_Configuration/Xephyr
-https://lists.x.org/archives/xorg-devel/2015-April/046071.html
-https://www.phoronix.com/forums/forum/linux-graphics-x-org-drivers/x-org-drm/49351-single-gpu-multi-seat-support-with-x-org-under-xephyr/page2
+Some commands later on expect the necessary files are already downloaded in `./resource` folder.

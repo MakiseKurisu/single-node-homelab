@@ -94,6 +94,7 @@ provision() {
 
     sed -e "s/MIRROR/$PVE_MIRROR/g" \
         -e "s/MERGED/$MERGED/g" \
+        -e "s/USER/$LOCAL_USER/g" \
         -E "$SCRIPT_DIR/sample/vars.example" > "$SCRIPT_DIR/vars.yaml"
 
     if ! compgen -G "$HOME/.ssh/*.pub" > /dev/null
@@ -123,6 +124,8 @@ iso() {
         wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://looking-glass.io/artifact/B5.0.1/host &
         wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/upstream-virtio/virtio-win10-prewhql-0.1-161.zip &
         wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://www.monitortests.com/download/cru/cru-1.5.1.zip &
+        wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://github.com/LizardByte/Sunshine/releases/download/v0.14.0/sunshine-windows.exe &
+        wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://github.com/loki-47-6F-64/sunshine/releases/download/v0.11.1/Sunshine-Windows.zip &
         if in_array "-n" "${RESOURCE_OPT[@]}"
         then
             wget --content-disposition -P "$SCRIPT_DIR/resource/lg-win" https://us.download.nvidia.com/Windows/Quadro_Certified/513.46/513.46-quadro-rtx-desktop-notebook-win10-win11-64bit-international-dch-whql.exe &
@@ -161,6 +164,7 @@ env_init() {
     PVE_MIRROR="none"
     unset PVE_IP
     MERGED="vgpu"
+    LOCAL_USER="user"
 
     RESOURCE_OPT=()
 }
@@ -169,7 +173,7 @@ show_help() {
     cat << EOF
 Usage 1:
         $(basename "$0") [-h] [-p <password>] [-t] [-v]
-            [-i <ip address>] provision <fqdn>
+            [-i <ip address>] [-U <username>] provision <fqdn>
 
         Provision Proxmox host with a fully qualified domain name.
 
@@ -179,6 +183,7 @@ Options:
         -i <ip address> PVE's IP address. Used when FQDN cannot be resolved by local DNS.
         -v              Install merged driver to enbale host video output
         -t              Use TUNA mirror.
+        -U <username>   Local user name for Proxmox and VMs.
 
 Usage 2:
         $(basename "$0") ansible <playbook> [-- [additional ansible options]]
@@ -208,7 +213,7 @@ EOF
 
 set -e
 
-TEMP="$(getopt -o "htp:i:nmwdu" -l "all" -n "$0" -- "$@")"
+TEMP="$(getopt -o "htp:i:nmwduvU:" -l "all" -n "$0" -- "$@")"
 if (( $? != 0 ))
 then
     show_help
@@ -229,6 +234,10 @@ do
             ;;
         -i)
             PVE_IP="$1"
+            shift
+            ;;
+        -U)
+            LOCAL_USER="$1"
             shift
             ;;
         -t)
@@ -266,7 +275,7 @@ case "$1" in
     provision|iso)
         "$@"
         ;;
-    "")
+    *)
         show_help
         exit 1
         ;;

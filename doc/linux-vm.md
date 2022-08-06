@@ -16,15 +16,18 @@ Create your Linux VM in Proxmox's GUI. Some personal perferences and tips with i
 - Use `VirtIO (paravirtualized)` network card.
 - **Do not check `Start after created`!** We will make more changes before we start the VM.
 
-After those steps I have created a VM with VMID `301`. Now go to `Hardware` and add `Serial Port` and `VirtIO RNG`, which are optional since you can also use SSH to control the VM. If you have no hardware audio card to passthrough you will need to add an `Audio Device`. If you have a working vGPU setup, you can now add `PCI Device` to your VM, and `Meditated Device` will say `Yes` for your GPU. Select it, choose the profile in `MDev Type`, and check every available options. Otherwise, just add your PCIe devices here.
+After those steps I have created a VM with VMID `301`. Now go to `Hardware` and add `Serial Port` and `VirtIO RNG`, which are optional since you can also use SSH to control the VM. If you have no hardware audio card to passthrough you will need to add an `Audio Device`. If you have a working vGPU setup, you can now add `PCI Device` to your VM, and `Meditated Device` will say `Yes` for your GPU. Select it, choose the profile in `MDev Type`, and check every available options. Otherwise, just add your other PCIe devices here.
 
-Now start VM and install your favorite distro. Right now uou can use a Spice viewer like `virt-viewer` to control the VM, instead of Proxmox's noVNC web console. For distro I'm using Manjaro. Once everything is done, let's run the following commands in the Spice viewer or noVNC to enable remote access:
+If you use dGPU it is easier to set `Display` to `none` here, add your dGPU, and install on your physical screen, so the driver is auto installed by your installer. This is the case for Manjaro, where installing with both dGPU and Virtio-GPU results in no graphical shell in either places, and installing with Virtio-GPU only results in blackscreen once switched to AMD dGPU. If your distro have better support on graphic, you can have both enabled, or only Virtio-GPU. This way you can use `virt-viewer` to control the VM, instead of Proxmox's noVNC web console or hooking up additional hardware.
+
+Once you can log in the guest system, let's run the following commands to enable remote access:
 
 ```bash
-sudo systemctl enable --now sshd serial-getty@ttyS0
+sudo systemctl enable --now sshd
+ip a
 ```
 
-The reason we do this is that once you can remote console, you can copy and paste command in your local terminal, which is not something you can do with Proxmox's noVNC. You can then find the IP address on Proxmox's VM page. Here we will show you how to use the VirtIO serial console, since we will also run some commands in Proxmox as well:
+The reason we do this is that once you can remote console, you can copy and paste command in your local terminal, which is not something you can do with Proxmox's noVNC. Here we will show you how to use the VirtIO serial console:
 
 ```bash
 PVE_IP="$(grep "ansible_host" hosts | tr -s ' ' | cut -d ' ' -f 3)"
@@ -39,45 +42,53 @@ qm terminal $VMID
 ## Below commands in Manjaro Terminal
 ## Login with your account first
 chsh -s /usr/bin/zsh
+logout
+# Relog in to switch shell
 sudo sed -i "s/#ParallelDownloads/ParallelDownloads/" /etc/pacman.conf
-sudo pacman-mirrors -c China # Obviously use something else if you are not in China
+# Obviously use something else if you are not in China
+sudo pacman-mirrors -c China
 sudo pacman -Syu --noconfirm yay
-yay -S --noconfirm --needed base-devel linux515-headers dkms looking-glass obs-plugin-looking-glass looking-glass-module-dkms sunshine plasma-wayland-session
-cat << EOF > /etc/X11/xorg.conf.d/20-amdgpu.conf
-Section "Device"
-     Identifier "AMD"
-     Driver "amdgpu"
-     Option "VariableRefresh" "true"
-EndSection
-EOF
+yay -S --noconfirm --needed base-devel linux515-headers looking-glass obs-plugin-looking-glass looking-glass-module-dkms sunshine plasma-wayland-session qemu-guest-agent
+sudo systemctl enable --now serial-getty@ttyS0 qemu-guest-agent
 # Update user below to match your username
-cat << EOF | sudo tee /etc/tmpfiles.d/10-looking-glass.conf
-#Type Path        Mode UID  GID  Age Argument
-f     /dev/kvmfr0 0660 user root -
+cat << EOF | sudo tee /etc/udev/rules.d/99-kvmfr.rules
+SUBSYSTEM=="kvmfr", OWNER="user", GROUP="root", MODE="0660"
+EOF
+cat << EOF > ~/.looking-glass-client.ini
+[app]
+shmFile=/dev/kvmfr0
+
+[win]
+fullScreen=yes
+autoResize=yes
+jitRender=no # yes will crash X11 server. DO NOT ENABLE!
+
+[input]
+rawMouse=yes
+
+[spice]
+host=192.168.1.1 # change to your Windows VM IP
+port=5900
+captureOnStart=yes
+
 EOF
 sudo poweroff
 # Now you are back in Proxmox SSH
 ```
 
+Now we will need to some additional settings to enable VM to VM Looking Glass access:
+
 ```bash
+VMID=301
 # Below commands in Proxmox SSH
 qm set $VMID --hookscript=local-btrfs:snippets/pve-helper
-sed -i -E -e 's/^vga:.*$/vga: none/' -e 's/^ide2:.*$//' /etc/pve/qemu-server/$VMID.conf
 cat << EOF >> /etc/pve/qemu-server/$VMID.conf
 tablet: 0
-ivshmem: size=64,name=302
+ivshmem: size=128,name=302
 EOF
-echo "args: -uuid $(qm showcmd $VMID | sed -E "s_.*/(\w*-0000-0000-0000-\w*).*_\1_") -cpu host,-hypervisor,kvm=off,hv_vendor_id=AuthenticAMD,topoext -device virtio-mouse-pci -device virtio-keyboard-pci -spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on -device virtio-serial-pci -chardev spicevmc,id=vdagent,name=vdagent -device virtserialport,chardev=vdagent,name=com.redhat.spice.0" >> /etc/pve/qemu-server/$VMID.conf
-qm start $VMID
-# Leave this SSH session running, as we will use it during Windows setup
+sed -E -i "s/^ide2.*$//" /etc/pve/qemu-server/$VMID.conf
 ```
 
 We put `name=302` in `$VMID.conf` because by default, Proxmox will create IVSHMEM file suffixed with your VMID. However, we want to access Windows (VMID will be 302) through Looking Glass, so we need to match the name for IVSHMEM file.
 
-The last command starts the VM for you.
-
-## To do
-
-lg client config
-
-kvmfr0 permission
+Now you have complete your Linux VM setup.

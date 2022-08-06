@@ -9,6 +9,7 @@
   - [Install Looking Glass client on Proxmox](./lg-client.md)
   - [Create Linux VM with dGPU/vGPU and Sunshine](./linux-vm.md)
   - [Create Windows vWS with vGPU and Looking Glass](./win-vws.md)
+  - [Additional VM configs](./extra-vm-conf.md)
 - [Services](./services.md)
   - [Create Debian Guest](./debian-guest.md)
   - [Set up Samba Active Directory Domain Controller](./samba-ad-dc.md)

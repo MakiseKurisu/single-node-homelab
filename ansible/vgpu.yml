@@ -92,7 +92,7 @@
     - name: Create {{ merged }} driver
       ansible.builtin.shell: |
         cd ~/vGPU-Unlock-patcher
-        if [[ -d $(compgen -G NVIDIA-Linux-x86_64-510.85.03-vgpu-kvm*patched) ]]
+        if [[ -d $(compgen -G NVIDIA-Linux-x86_64-*-vgpu-kvm*patched) ]]
         then
           exit
         fi
@@ -107,7 +107,7 @@
 
     - name: Install {{ merged }} driver
       ansible.builtin.shell: |
-        cd ~/vGPU-Unlock-patcher/NVIDIA-Linux-x86_64-510.85.03-vgpu-kvm*patched
+        cd ~/vGPU-Unlock-patcher/NVIDIA-Linux-x86_64-*-vgpu-kvm*patched
         ./nvidia-installer -s --dkms
       changed_when: true
       tags: install-nvidia
