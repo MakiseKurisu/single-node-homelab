@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html" class="active"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html" class="active"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li><li class="chapter-item expanded "><a href="extra-vm-conf.html"><strong aria-hidden="true">2.6.</strong> Additional VM configs</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -156,11 +156,13 @@
 <li>Use <code>VirtIO (paravirtualized)</code> network card.</li>
 <li><strong>Do not check <code>Start after created</code>!</strong> We will make more changes before we start the VM.</li>
 </ul>
-<p>After those steps I have created a VM with VMID <code>301</code>. Now go to <code>Hardware</code> and add <code>Serial Port</code> and <code>VirtIO RNG</code>, which are optional since you can also use SSH to control the VM. If you have no hardware audio card to passthrough you will need to add an <code>Audio Device</code>. If you have a working vGPU setup, you can now add <code>PCI Device</code> to your VM, and <code>Meditated Device</code> will say <code>Yes</code> for your GPU. Select it, choose the profile in <code>MDev Type</code>, and check every available options. Otherwise, just add your PCIe devices here.</p>
-<p>Now start VM and install your favorite distro. Right now uou can use a Spice viewer like <code>virt-viewer</code> to control the VM, instead of Proxmox's noVNC web console. For distro I'm using Manjaro. Once everything is done, let's run the following commands in the Spice viewer or noVNC to enable remote access:</p>
-<pre><code class="language-bash">sudo systemctl enable --now sshd serial-getty@ttyS0
+<p>After those steps I have created a VM with VMID <code>301</code>. Now go to <code>Hardware</code> and add <code>Serial Port</code> and <code>VirtIO RNG</code>, which are optional since you can also use SSH to control the VM. If you have no hardware audio card to passthrough you will need to add an <code>Audio Device</code>. If you have a working vGPU setup, you can now add <code>PCI Device</code> to your VM, and <code>Meditated Device</code> will say <code>Yes</code> for your GPU. Select it, choose the profile in <code>MDev Type</code>, and check every available options. Otherwise, just add your other PCIe devices here.</p>
+<p>If you use dGPU it is easier to set <code>Display</code> to <code>none</code> here, add your dGPU, and install on your physical screen, so the driver is auto installed by your installer. This is the case for Manjaro, where installing with both dGPU and Virtio-GPU results in no graphical shell in either places, and installing with Virtio-GPU only results in blackscreen once switched to AMD dGPU. If your distro have better support on graphic, you can have both enabled, or only Virtio-GPU. This way you can use <code>virt-viewer</code> to control the VM, instead of Proxmox's noVNC web console or hooking up additional hardware.</p>
+<p>Once you can log in the guest system, let's run the following commands to enable remote access:</p>
+<pre><code class="language-bash">sudo systemctl enable --now sshd
+ip a
 </code></pre>
-<p>The reason we do this is that once you can remote console, you can copy and paste command in your local terminal, which is not something you can do with Proxmox's noVNC. You can then find the IP address on Proxmox's VM page. Here we will show you how to use the VirtIO serial console, since we will also run some commands in Proxmox as well:</p>
+<p>The reason we do this is that once you can remote console, you can copy and paste command in your local terminal, which is not something you can do with Proxmox's noVNC. Here we will show you how to use the VirtIO serial console:</p>
 <pre><code class="language-bash">PVE_IP=&quot;$(grep &quot;ansible_host&quot; hosts | tr -s ' ' | cut -d ' ' -f 3)&quot;
 ssh root@$PVE_IP
 # Below commands in Proxmox SSH
@@ -173,41 +175,51 @@ qm terminal $VMID
 ## Below commands in Manjaro Terminal
 ## Login with your account first
 chsh -s /usr/bin/zsh
+logout
+# Relog in to switch shell
 sudo sed -i &quot;s/#ParallelDownloads/ParallelDownloads/&quot; /etc/pacman.conf
-sudo pacman-mirrors -c China # Obviously use something else if you are not in China
+# Obviously use something else if you are not in China
+sudo pacman-mirrors -c China
 sudo pacman -Syu --noconfirm yay
-yay -S --noconfirm --needed base-devel linux515-headers dkms looking-glass obs-plugin-looking-glass looking-glass-module-dkms sunshine plasma-wayland-session
-cat &lt;&lt; EOF &gt; /etc/X11/xorg.conf.d/20-amdgpu.conf
-Section &quot;Device&quot;
-     Identifier &quot;AMD&quot;
-     Driver &quot;amdgpu&quot;
-     Option &quot;VariableRefresh&quot; &quot;true&quot;
-EndSection
-EOF
+yay -S --noconfirm --needed base-devel linux515-headers looking-glass obs-plugin-looking-glass looking-glass-module-dkms sunshine plasma-wayland-session qemu-guest-agent
+sudo systemctl enable --now serial-getty@ttyS0 qemu-guest-agent
 # Update user below to match your username
-cat &lt;&lt; EOF | sudo tee /etc/tmpfiles.d/10-looking-glass.conf
-#Type Path        Mode UID  GID  Age Argument
-f     /dev/kvmfr0 0660 user root -
+cat &lt;&lt; EOF | sudo tee /etc/udev/rules.d/99-kvmfr.rules
+SUBSYSTEM==&quot;kvmfr&quot;, OWNER=&quot;user&quot;, GROUP=&quot;root&quot;, MODE=&quot;0660&quot;
+EOF
+cat &lt;&lt; EOF &gt; ~/.looking-glass-client.ini
+[app]
+shmFile=/dev/kvmfr0
+
+[win]
+fullScreen=yes
+autoResize=yes
+jitRender=no # yes will crash X11 server. DO NOT ENABLE!
+
+[input]
+rawMouse=yes
+
+[spice]
+host=192.168.1.1 # change to your Windows VM IP
+port=5900
+captureOnStart=yes
+
 EOF
 sudo poweroff
 # Now you are back in Proxmox SSH
 </code></pre>
-<pre><code class="language-bash"># Below commands in Proxmox SSH
+<p>Now we will need to some additional settings to enable VM to VM Looking Glass access:</p>
+<pre><code class="language-bash">VMID=301
+# Below commands in Proxmox SSH
 qm set $VMID --hookscript=local-btrfs:snippets/pve-helper
-sed -i -E -e 's/^vga:.*$/vga: none/' -e 's/^ide2:.*$//' /etc/pve/qemu-server/$VMID.conf
 cat &lt;&lt; EOF &gt;&gt; /etc/pve/qemu-server/$VMID.conf
 tablet: 0
-ivshmem: size=64,name=302
+ivshmem: size=128,name=302
 EOF
-echo &quot;args: -uuid $(qm showcmd $VMID | sed -E &quot;s_.*/(\w*-0000-0000-0000-\w*).*_\1_&quot;) -cpu host,-hypervisor,kvm=off,hv_vendor_id=AuthenticAMD,topoext -device virtio-mouse-pci -device virtio-keyboard-pci -spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on -device virtio-serial-pci -chardev spicevmc,id=vdagent,name=vdagent -device virtserialport,chardev=vdagent,name=com.redhat.spice.0&quot; &gt;&gt; /etc/pve/qemu-server/$VMID.conf
-qm start $VMID
-# Leave this SSH session running, as we will use it during Windows setup
+sed -E -i &quot;s/^ide2.*$//&quot; /etc/pve/qemu-server/$VMID.conf
 </code></pre>
 <p>We put <code>name=302</code> in <code>$VMID.conf</code> because by default, Proxmox will create IVSHMEM file suffixed with your VMID. However, we want to access Windows (VMID will be 302) through Looking Glass, so we need to match the name for IVSHMEM file.</p>
-<p>The last command starts the VM for you.</p>
-<h2 id="to-do"><a class="header" href="#to-do">To do</a></h2>
-<p>lg client config</p>
-<p>kvmfr0 permission</p>
+<p>Now you have complete your Linux VM setup.</p>
 
                     </main>
 

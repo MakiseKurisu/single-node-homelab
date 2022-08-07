@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html" class="active"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="hardware.html"><strong aria-hidden="true">1.</strong> Hardware</a></li><li class="chapter-item expanded "><a href="pws.html"><strong aria-hidden="true">2.</strong> Proxmox Workstation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="proxmox.html"><strong aria-hidden="true">2.1.</strong> Set up Proxmox</a></li><li class="chapter-item expanded "><a href="vgpu.html"><strong aria-hidden="true">2.2.</strong> Install vGPU driver</a></li><li class="chapter-item expanded "><a href="lg-client.html"><strong aria-hidden="true">2.3.</strong> Install Looking Glass client on Proxmox</a></li><li class="chapter-item expanded "><a href="linux-vm.html"><strong aria-hidden="true">2.4.</strong> Create Linux VM with dGPU/vGPU and Sunshine</a></li><li class="chapter-item expanded "><a href="win-vws.html" class="active"><strong aria-hidden="true">2.5.</strong> Create Windows vWS with vGPU and Looking Glass</a></li><li class="chapter-item expanded "><a href="extra-vm-conf.html"><strong aria-hidden="true">2.6.</strong> Additional VM configs</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">3.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="debian-guest.html"><strong aria-hidden="true">3.1.</strong> Create Debian Guest</a></li><li class="chapter-item expanded "><a href="samba-ad-dc.html"><strong aria-hidden="true">3.2.</strong> Set up Samba Active Directory Domain Controller</a></li><li class="chapter-item expanded "><a href="samba-ad-member.html"><strong aria-hidden="true">3.3.</strong> Join Samba Active Directory Domain</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -141,24 +141,29 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="create-windows-vws-with-vgpu-and-looking-glass"><a class="header" href="#create-windows-vws-with-vgpu-and-looking-glass">Create Windows vWS with vGPU and Looking Glass</a></h1>
-<p>Create your Windows VM similarly to how we created Linux VM. In this example I created a VM with VMID <code>302</code>. You can also add the same optional devices, even serial since Windows also supports serial console in the form of Windows Emergency Management Services. What's not optional though, is that you need to add 2 <code>CD/DVD Drive</code>, with <code>virtio-win.iso</code> under IDE bus 0, and <code>lg-win.iso</code> under SATA bus 1. Settings here affect how Windows assigns drive letters, so if you are not following this setting, be careful later on when there is a path listed.</p>
+<p>Create your Windows VM similarly to how we created Linux VM. In this example I created a VM with VMID <code>302</code>. You can also add the same optional devices, even serial since Windows also supports serial console in the form of Windows Emergency Management Services. What's not optional though, is that you need to add 2 <code>CD/DVD Drive</code>, with <code>virtio-win.iso</code> under IDE bus 0, and <code>lg-win.iso</code> under SATA bus 1. Settings here affect how Windows assigns drive letters, so if you are not following this setting, be careful later on when there is a path listed. Finally, add your vGPU here. Windows can support both Virtio-GPU and vGPU at the same time.</p>
 <p>Now start VM and install Windows. When Windows Installer asks you <code>Where do you want to install Windows?</code>, click <code>Load driver</code>, and <code>Browse</code> <code>E:\amd64\w11</code> to install <code>Red Hat VirtIO SCSI pass-through controller</code>, <strong>AND</strong> <code>E:\NetKVM\w11\amd64\</code> to install <code>Red Hat VirtIO Ethernet Adapter</code>. Windows is moving towards more online services, and you have to use an online account in Home edition. Pro edition is <em>currently</em> unaffected, but let's install the network driver just in case.</p>
-<p>During OOBE setup create an account <strong>with password</strong> or you won't be able to access the computer via RDP. One trick though is to create account <strong>without password</strong> then add password in <code>Settings</code> once you can access the desktop. This way I don't have to click through 3 password recovery questions. After OOBE is done, go to <code>Settings </code>-<code>System </code>-<code>Remote Desktop </code> and enable RDP (and create your password), then install VirtIO drivers with everything selected (<code>E:\virtio-win-guest-tools.exe</code>). After drivers are installed, shutdown Windows, run <code>VMID=302</code> in your Proxmox SSH session, then add the vGPU and run the same configuration commands listed in the Linux section again except <code>qm start</code>.</p>
-<p>You will then decide if you only want to access Looking Glass from local Proxmox host, or via network (like from Linux VM). If you want to allow network access, you will need to use a normal socket for SPICE. Replace</p>
-<pre><code>-spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on
+<p>During OOBE setup you can create account <strong>without password</strong> so you don't have to click through 3 password recovery questions. After OOBE is done, go to <code>Settings</code> and enable RDP, add password (required for RDP login).</p>
+<p>You now need to install VirtIO drivers with everything selected (<code>E:\virtio-win-guest-tools.exe</code>), NVIDIA driver, <a href="https://looking-glass.io/docs/B5.0.1/install/#installing-the-ivshmem-driver">IVSHMEM driver</a> under <code>Win10\amd64</code> folder (<strong>make sure it reads <code>IVSHMEM Device</code> in <code>Device Manager</code></strong>, not <code>PCI standard RAM Controller</code>), and Looking Glass, which all located under <code>D:\</code>. Go to <code>Services</code> and make sure <code>Looking Glass (host)</code> service is <code>Running</code>, and you have completed the Windows VM setup. After drivers are installed, disable sleep (will mess up IVSHMEM file on Proxmox), and shut down Windows.</p>
+<p>Like Linux you will now run a few commands:</p>
+<pre><code class="language-bash">VMID=302
+LG_USER=&quot;domain_user&quot;
+# Below commands in Proxmox SSH
+qm set $VMID --hookscript=local-btrfs:snippets/pve-helper
+cat &lt;&lt; EOF &gt;&gt; /etc/pve/qemu-server/$VMID.conf
+tablet: 0
+ivshmem: size=128
+EOF
+sed -E -i -e &quot;s/^ide.*$//&quot; -e &quot;s/^sata.*$//&quot; -e &quot;s/^vga.*$/vga: none/&quot; /etc/pve/qemu-server/$VMID.conf
+echo &quot;args: -uuid $(qm showcmd $VMID | sed -E &quot;s_.*/(\w*-0000-0000-0000-\w*).*_\1_&quot;) -cpu host,hv_ipi,hv_relaxed,hv_reset,hv_runtime,hv_spinlocks=0x1fff,hv_stimer,hv_synic,hv_time,hv_vapic,hv_vendor_id=AuthenticAMD,hv_vpindex,kvm=off,+kvm_pv_eoi,+kvm_pv_unhalt,-hypervisor -device virtio-mouse-pci -device virtio-keyboard-pci -device virtio-serial-pci -chardev spicevmc,id=vdagent,name=vdagent -device virtserialport,chardev=vdagent,name=com.redhat.spice.0 -spice addr=0.0.0.0,port=5900,disable-ticketing=on&quot; &gt;&gt; /etc/pve/qemu-server/$VMID.conf
 </code></pre>
-<p>with this</p>
+<p>You will then decide if you only want to access Looking Glass from local Proxmox host, or via network (like from Linux VM). If you want to allow network access, you will need to use a normal socket for SPICE. Replace</p>
 <pre><code>-spice addr=0.0.0.0,port=5900,disable-ticketing=on
 </code></pre>
-<p>run the following commands as well if you want to access VM with Looking Glass on Proxmox:</p>
-<pre><code class="language-bash">LG_USER=&quot;domain_user&quot;
-# We assume you will also set up Active Directory later, and an user called `domain_user` exist in your domain.
-# If you want to add a local user, please use `adduser`, as this one will use /etc/skel to setup new user's home folder.
-echo &quot;#lg-chown $LG_USER&quot; &gt;&gt; /etc/pve/qemu-server/$VMID.conf
-qm start $VMID
+<p>with this</p>
+<pre><code>-spice unix=on,addr=/run/lg$VMID.socket,disable-ticketing=on
 </code></pre>
-<p>After VM boots up, you will have to use RDP to log in. You need to install Nvidia driver, <a href="https://looking-glass.io/docs/B5.0.1/install/#installing-the-ivshmem-driver">IVSHMEM driver</a> under <code>Win10\amd64</code> folder (<strong>make sure it reads <code>IVSHMEM Device</code> in <code>Device Manager</code></strong>, not <code>PCI standard RAM Controller</code>), and Looking Glass, which all located under <code>D:\</code>. Go to <code>Services</code> and make sure <code>Looking Glass (host)</code> service is <code>Running</code>, and you have completed the Windows VM setup. Go back to Proxmox's GUI and delete those <code>CD/DVD Drive</code>. They will shown with a strike through line, as Proxmox can't change hardware configuration when VM is ruuning, but those will be applied automatically when VM is off (including when you reboot the server, as that will shutdown all VMs first).</p>
-<p>Now login with your assigned user account on your Proxmox machine and start using Looking Glass.</p>
+<p>We suggest you reboot Proxmox once you finish set up before you boot both Linux and Windows VM up with intention to use VM-to-VM Looking Glass. Sometimes Proxmox will create IVSHMEM file with a different inode, so VM stops talking to each other. Reboot gurantees they will have the same inode.</p>
 
                     </main>
 
@@ -167,7 +172,7 @@ qm start $VMID
                             <a rel="prev" href="linux-vm.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="services.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="extra-vm-conf.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -179,7 +184,7 @@ qm start $VMID
                     <a rel="prev" href="linux-vm.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="services.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="extra-vm-conf.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
