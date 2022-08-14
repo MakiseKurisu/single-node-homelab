@@ -7,7 +7,7 @@ yay -Syu --needed --noconfirm github-cli visual-studio-code-bin github-desktop-b
     manjaro-asian-input-support-fcitx5 fcitx5-chinese-addons \
     kicad \
     libreoffice-fresh chromium thunderbird \
-    moonlight-qt-bin remmina freerdp \
+    moonlight-qt remmina freerdp \
     discord mattermost-desktop teams skypeforlinux-stable-bin deepin-wine-wechat deepin-wine-tim wemeet-bin v4l2loopback-dkms
 yay -Syu --needed manjaro-pipewire
 cat << EOF | sudo tee -a /etc/environment
