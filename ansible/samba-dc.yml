@@ -1,0 +1,87 @@
+---
+- name: looking-glass
+  hosts: "dc01.{{ domain }}"
+  remote_user: "{{ user }}"
+  become: yes
+  become_method: su
+  vars_files:
+    - ../vars.yaml
+
+  tasks:
+    - name: Install extra dependencies
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - smbclient
+          - ntp
+      tags: deps
+
+    - name: Disable smb services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - smbd
+        - nmbd
+        - winbind
+      tags: disable-smb
+
+    - name: Update /etc/hosts
+      ansible.builtin.shell: |
+        sed -nie "p; s/127.0.1.1/$(ip -o -6 addr | grep -v -e "1: lo" -e "dynamic" -e "link" | head -n 1 | awk '{print $4}' | cut -d/ -f1)/p" /etc/hosts
+        sed -ie "s/127.0.1.1/$(ip -o -4 addr | grep -v "1: lo" | awk '{print $4}' | cut -d/ -f1)/" /etc/hosts
+      changed_when: true
+      tags: hosts
+
+    - name: Delete existing samba configs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/samba/smb.conf
+        - /run/samba
+        - /var/lib/samba
+        - /var/cache/samba
+        - /etc/krb5.conf
+      tags: disable-smb
+
+    - name: Create private directory
+      ansible.builtin.file:
+        path: /var/lib/samba/private
+        state: directory
+        mode: '0755'
+      tags: private-dir
+
+    - name: Provision samba controller
+      ansible.builtin.shell: |
+        REALM="{{ domain }}"
+        samba-tool domain provision --use-rfc2307 --realm=$REALM --domain=${REALM%.*}
+      changed_when: true
+      tags: provision
+
+    - name: Add extra smb.conf settings
+      ansible.builtin.blockinfile:
+        path: /etc/samba/smb.conf
+        block: |
+          [global]
+                  template shell = /bin/bash
+                  template homedir = /home/%U
+                  winbind use default domain = yes
+      tags: smb-conf
+    
+    - name: Additional settings
+      ansible.builtin.shell: |
+        sed -ie "s/passwd:\s*files/passwd: files winbind/" -e "s/group:\s*files/group: files winbind/" /etc/nsswitch.conf
+        echo "session required pam_mkhomedir.so" >> /etc/pam.d/common-session
+        echo "domain {{ domain }}" >> /etc/resolv.conf
+        echo "search {{ domain }}" >> /etc/resolv.conf
+        cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
+        sed -ie "s/default kod notrap nomodify nopeer noquery limited/default kod notrap nomodify nopeer limited mssntp/g" /etc/ntp.conf
+        echo "ntpsigndsocket /var/lib/samba/ntp_signd/" >> /etc/ntp.conf
+        chown root:ntp /var/lib/samba/ntp_signd
+        systemctl restart ntp
+        systemctl unmask samba-ad-dc
+        systemctl enable --now samba-ad-dc
+      changed_when: true
+      tags: hosts

@@ -9,9 +9,9 @@ all:
         infra_gw:
           hosts:
             gw01.PVE_DOMAIN:
-            dc01.PVE_DOMAIN:
         infra_debian:
           hosts:
+            dc01.PVE_DOMAIN:
             nas01.PVE_DOMAIN:
             app01.PVE_DOMAIN:
     vdi:

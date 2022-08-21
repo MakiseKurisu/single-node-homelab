@@ -95,6 +95,7 @@ provision() {
     sed -e "s/MIRROR/$PVE_MIRROR/g" \
         -e "s/MERGED/$MERGED/g" \
         -e "s/USER/$LOCAL_USER/g" \
+        -e "s/DOMAIN/$PVE_DOMAIN/g" \
         -E "$SCRIPT_DIR/sample/vars.example" > "$SCRIPT_DIR/vars.yaml"
 
     if ! compgen -G "$HOME/.ssh/*.pub" > /dev/null
@@ -103,9 +104,12 @@ provision() {
     fi
 
     ssh-keygen -R $PVE_IP
-    ansible-playbook "$SCRIPT_DIR/ansible/ssh-copy-id.yml" -i "$SCRIPT_DIR/hosts" -l pve "${SSH_PASS[@]}" --extra-vars 'user=root' --ssh-extra-args '-o "StrictHostKeyChecking accept-new"'
-
+    copy-id
     echo "Your Proxmox server is now ready to work with the guide. Have fun!"
+}
+
+copy-id() {
+    ansible-playbook -i "$SCRIPT_DIR/hosts" "$SCRIPT_DIR/ansible/ssh-copy-id.yml" -l "$ANSIBLE_HOSTS" "${SSH_PASS[@]}" --extra-vars "user=$LOCAL_USER" --ssh-extra-args '-o "StrictHostKeyChecking accept-new"'
 }
 
 iso() {
@@ -164,7 +168,8 @@ env_init() {
     PVE_MIRROR="none"
     unset PVE_IP
     MERGED="vgpu"
-    LOCAL_USER="user"
+    LOCAL_USER="root"
+    ANSIBLE_HOSTS="pve"
 
     RESOURCE_OPT=()
 }
@@ -183,16 +188,27 @@ Options:
         -i <ip address> PVE's IP address. Used when FQDN cannot be resolved by local DNS.
         -v              Install merged driver to enbale host video output
         -t              Use TUNA mirror.
-        -U <username>   Local user name for Proxmox and VMs.
+        -U <username>   Non-root admin user name for Proxmox and VMs.
 
 Usage 2:
+        $(basename "$0") [-U <username>] [-p <password>] [-l <inventory_group>] copy-id
+
+        Copy your SSH pubkey to an ansible inventory group.
+
+Options:
+        -p <password>   PVE's root password. Used for ssh-copy-id.
+        -U <username>   Non-root admin user name for Proxmox and VMs.
+        -l <inventory_group>
+                        Inventory groups defined in host file.
+
+Usage 3:
         $(basename "$0") ansible <playbook> [-- [additional ansible options]]
 
         Run a specified Ansible playbook.
         To pass additional options straight to 'ansble-playbook',
         start with '--' then follow with your extra options.
 
-Usage 3:
+Usage 4:
         $(basename "$0") [-n] [-w] [-m] [-d] [-u] [--all] iso
 
         Download required drivers and ISOs.
@@ -213,7 +229,7 @@ EOF
 
 set -e
 
-TEMP="$(getopt -o "htp:i:nmwduvU:" -l "all" -n "$0" -- "$@")"
+TEMP="$(getopt -o "htp:i:nmwduvU:l:" -l "all" -n "$0" -- "$@")"
 if (( $? != 0 ))
 then
     show_help
@@ -238,6 +254,10 @@ do
             ;;
         -U)
             LOCAL_USER="$1"
+            shift
+            ;;
+        -l)
+            ANSIBLE_HOSTS="$1"
             shift
             ;;
         -t)
@@ -270,9 +290,9 @@ case "$1" in
     ansible)
         TEMP="$2"
         shift 2
-        ansible-playbook -i "$SCRIPT_DIR/hosts" "$SCRIPT_DIR/ansible/$TEMP.yml" "$@"
+        ansible-playbook --ask-become-pass -i "$SCRIPT_DIR/hosts" "$SCRIPT_DIR/ansible/$TEMP.yml" "$@"
         ;;
-    provision|iso)
+    provision|iso|copy-id)
         "$@"
         ;;
     *)

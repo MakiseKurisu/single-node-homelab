@@ -1,0 +1,54 @@
+---
+- name: looking-glass
+  hosts: "infra_debian"
+  remote_user: "{{ user }}"
+  become: yes
+  become_method: su
+  vars_files:
+    - ../vars.yaml
+
+  tasks:
+    - name: Install common system utilties
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - bash-completion
+          - tmux
+          - sudo
+          - systemd-timesyncd
+      tags: sys-utils
+
+    - name: Install samba
+      ansible.builtin.apt:
+        name:
+          - samba
+          - winbind
+          - libnss-winbind
+          - libpam-winbind
+          - krb5-user
+          - libpam-krb5
+      tags: samba
+
+    - name: Enable console over serial
+      ansible.builtin.systemd:
+        name: serial-getty@ttyS0
+        state: started
+        enabled: yes
+      tags: serial
+
+    - name: Add SSH user to sudo group
+      ansible.builtin.user:
+        name: "{{ user }}"
+        groups: sudo
+        append: yes
+
+    - name: Misc configs
+      ansible.builtin.shell: |
+        timedatectl set-ntp true
+        echo "iface enp6s18 inet6 dhcp" >> /etc/network/interfaces
+      changed_when: true
+      tags: misc
+
+    - name: Poweroff
+      community.general.shutdown:
+      tags: poweroff
